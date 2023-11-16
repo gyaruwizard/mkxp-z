@@ -1,0 +1,19 @@
+name: Setup MKXP-Z
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    types: [ opened, synchronize, reopened ]
+jobs:
+  sound-test:
+    name: Sound Test
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Create Fake Audio Device
+        uses: LABSN/sound-ci-helpers@v1
+
+      - name: Install Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 3.1
