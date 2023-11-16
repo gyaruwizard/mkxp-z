@@ -24,7 +24,7 @@ jobs:
       - name: Set Up MKXP-Z
         uses: ./.github/actions/mkxp-z
         with:
-          mkxpz-version: 2.4.2.win32.d23266a
+          mkxpz-version: 2.4.2.win32.d2f4ecd
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Test Gem
@@ -45,7 +45,7 @@ jobs:
       - name: Set Up MKXP-Z
         uses: ./.github/actions/mkxp-z
         with:
-          mkxpz-version: 2.4.2.linux
+          mkxpz-version: 2.4.2.linux.d2f4ecd
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Test Gem
