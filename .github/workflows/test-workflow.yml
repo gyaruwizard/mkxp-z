@@ -11,8 +11,8 @@ on:
 
 jobs:
   windows:
-    name: Test Action Reusable Workflow
-    runs-on: ubuntu-22.04
+    name: Windows
+    runs-on: windows-latest
     steps:
       - uses: snow-actions/sparse-checkout@v1.2.0
         with:
