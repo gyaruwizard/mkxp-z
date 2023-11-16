@@ -177,7 +177,7 @@ jobs:
 
       - name: Push Gem to Registry
         run: |
-          GEMFILE=$(mkxp-z-*.gem)[0]
+          GEMFILE=(mkxp-z-*.gem)[0]
           gem push --key github --host https://rubygems.pkg.github.com/fcorso2016 "$GEMFILE"
 
 
