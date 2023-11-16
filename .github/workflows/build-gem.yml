@@ -68,7 +68,10 @@ jobs:
           cd build
           ninja install
           cd ..
-          gem build mkxp-z.gemspec
+          gem build mkxp-z.
+
+      - name: Install sonar-scanner and build-wrapper
+        uses: SonarSource/sonarcloud-github-c-cpp@v2
 
       - name: Run sonar-scanner
         env:
@@ -88,9 +91,6 @@ jobs:
         run: |
           $gemfile=@(gci mkxp-z-*.gem | Resolve-Path -Relative)[0]
           gem push --key github --host https://rubygems.pkg.github.com/fcorso2016 "${gemfile}"
-
-      - name: Install sonar-scanner and build-wrapper
-        uses: SonarSource/sonarcloud-github-c-cpp@v2
 
       - name: Prepare archive
         shell: msys2 {0}
