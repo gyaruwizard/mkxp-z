@@ -163,6 +163,12 @@ jobs:
           cd ..
           gem build mkxp-z.gemspec
 
+      - name: Create Fake Audio Device
+        uses: LABSN/sound-ci-helpers@v1
+
+      - name: Run Tests
+        run: rake
+
       - name: Install sonar-scanner and build-wrapper
         uses: SonarSource/sonarcloud-github-c-cpp@v2
 

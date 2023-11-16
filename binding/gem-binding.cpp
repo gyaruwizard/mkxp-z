@@ -12,6 +12,12 @@
 
 #include "eventthread.h"
 
+#include <stdio.h>
+#include <execinfo.h>
+#include <signal.h>
+#include <stdlib.h>
+#include <unistd.h>
+
 ALCcontextPtr startRgssThread(RGSSThreadData *threadData);
 
 int killRgssThread(RGSSThreadData *threadData);
@@ -80,7 +86,22 @@ void killGameState(VALUE) {
 }
 
 extern "C" {
+void handler(int sig) {
+    void *array[10];
+    size_t size;
+
+    // get void*'s for all entries on the stack
+    size = backtrace(array, 10);
+
+    // print out all the frames to stderr
+    fprintf(stderr, "Error: signal %d:\n", sig);
+    backtrace_symbols_fd(array, size, STDERR_FILENO);
+    exit(1);
+}
+
 MKXPZ_GEM_EXPORT void Init_mkxpz() {
+    signal(SIGSEGV, handler);   // install our handler
+
     auto mkxpzModule = rb_define_module("MKXP_Z");
     _rb_define_module_function(mkxpzModule, "init_game_state", initGameState);
 
