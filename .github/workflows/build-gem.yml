@@ -81,13 +81,13 @@ jobs:
           sonar-scanner --define sonar.cfamily.compile-commands=build/compile_commands.json --define sonar.projectKey=fcorso2016_mkxp-z_gem_windows  
 
       - name: Ruby Gem Setup Credentials
-        if: ${{ github.ref == 'ref/head/dev' }}
+        if: ${{ github.ref == 'refs/head/dev' }}
         uses: fac/ruby-gem-setup-credentials-action@v2.1.1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Push Gem to Registry
-        if: ${{ github.ref == 'ref/head/dev' }}
+        if: ${{ github.ref == 'refs/head/dev' }}
         run: |
           $gemfile=@(gci mkxp-z-*.gem | Resolve-Path -Relative)[0]
           gem push --key github --host https://rubygems.pkg.github.com/fcorso2016 "${gemfile}"
@@ -175,13 +175,13 @@ jobs:
 
 
       - name: Ruby Gem Setup Credentials
-        if: ${{ github.ref == 'ref/head/dev' }}
+        if: ${{ github.ref == 'refs/head/dev' }}
         uses: fac/ruby-gem-setup-credentials-action@v2.1.1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Push Gem to Registry
-        if: ${{ github.ref == 'ref/head/dev' }}
+        if: ${{ github.ref == 'refs/head/dev' }}
         run: |
           GEMFILES=(mkxp-z-*.gem)
           gem push --key github --host https://rubygems.pkg.github.com/fcorso2016 "${GEMFILES[0]}"
