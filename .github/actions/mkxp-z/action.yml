@@ -12,6 +12,11 @@ inputs:
 runs:
   using: "composite"
   steps:
+    - name: Install apt dependencies
+      run: |
+        sudo apt update
+        sudo apt install bison zlib1g-dev libbz2-dev xorg-dev libgl1-mesa-dev libasound2-dev libpulse-dev -y
+
     - name: Create Fake Audio Device
       uses: LABSN/sound-ci-helpers@v1
 
