@@ -17,3 +17,12 @@ jobs:
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: 3.1
+
+      - name: Ruby Gem Setup Credentials
+        uses: fac/ruby-gem-setup-credentials-action@v2.1.1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install MKXP-Z
+        run:
+          gem install mkxp-z --version "2.4.2.linux"
