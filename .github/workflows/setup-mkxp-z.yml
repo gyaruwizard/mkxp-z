@@ -2,11 +2,11 @@ name: Setup MKXP-Z
 on:
   push:
     branches:
-      - master
+      - dev
   pull_request:
     types: [ opened, synchronize, reopened ]
 jobs:
-  sound-test:
+  setup-mkxp-z:
     name: Sound Test
     runs-on: ubuntu-22.04
     steps:
