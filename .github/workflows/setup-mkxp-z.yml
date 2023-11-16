@@ -1,12 +1,13 @@
 name: Setup MKXP-Z
 on:
-  push:
-    branches:
-      - dev
-  pull_request:
-    types: [ opened, synchronize, reopened ]
+  workflow_call:
+    inputs:
+      mkxpz-version:
+        required: true
+        type: string
+
 jobs:
-  setup-mkxp-z:
+  setup:
     name: Setup MKXP-Z
     runs-on: ubuntu-22.04
     steps:
@@ -23,4 +24,4 @@ jobs:
 
       - name: Install MKXP-Z
         run:
-          gem install mkxp-z --version "2.4.2.linux"
+          gem install mkxp-z --version "${{ inputs.mkxpz-version }}"

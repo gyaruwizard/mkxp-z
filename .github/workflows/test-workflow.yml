@@ -1,0 +1,26 @@
+# I have no idea what I'm doing
+name: Test Reusable Workflow
+
+on:
+  push:
+    branches: [ 'dev', 'autobuild' ]
+    paths-ignore: [ '*.md', '*.json', '*.png' ]
+  pull_request:
+    branches: [ 'dev', 'autobuild' ]
+    paths-ignore: [ '*.md', '*.json', '*.png' ]
+
+jobs:
+  test:
+    name: Test Action Reusable Workflow
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set Up MKXP-Z
+        uses: ./.github/workflows/setup-mkxp-z@setup
+        with:
+          mkxpz-version: 2.4.2.linux
+
+      - name: Test Gem
+        run:
+          rake
