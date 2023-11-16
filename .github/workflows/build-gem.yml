@@ -70,15 +70,8 @@ jobs:
           cd ..
           gem build mkxp-z.gemspec
 
-      - name: Install sonar-scanner and build-wrapper
-        uses: SonarSource/sonarcloud-github-c-cpp@v2
-
-      - name: Run sonar-scanner
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: |
-          sonar-scanner --define sonar.cfamily.compile-commands=build/compile_commands.json --define sonar.projectKey=fcorso2016_mkxp-z_gem_windows  
+      - name: Print github.ref
+        run: echo ${{ github.ref }}
 
       - name: Ruby Gem Setup Credentials
         if: github.ref == 'refs/head/dev'
@@ -91,6 +84,16 @@ jobs:
         run: |
           $gemfile=@(gci mkxp-z-*.gem | Resolve-Path -Relative)[0]
           gem push --key github --host https://rubygems.pkg.github.com/fcorso2016 "${gemfile}"
+
+      - name: Install sonar-scanner and build-wrapper
+        uses: SonarSource/sonarcloud-github-c-cpp@v2
+
+      - name: Run sonar-scanner
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          sonar-scanner --define sonar.cfamily.compile-commands=build/compile_commands.json --define sonar.projectKey=fcorso2016_mkxp-z_gem_windows  
 
       - name: Prepare archive
         shell: msys2 {0}
