@@ -64,7 +64,7 @@ jobs:
         shell: msys2 {0}
         run: |
           source windows/vars.sh
-          meson build -Dbuild_gem=true --buildtype debug-optimized
+          meson build -Dbuild_gem=true --buildtype debugoptimized
           cd build
           ninja install
           cd ..
@@ -156,7 +156,7 @@ jobs:
       - name: Build Ruby gem
         run: |
           source linux/vars.sh
-          meson build --bindir=. --prefix=$GITHUB_WORKSPACE/build/local -Dbuild_gem=true --buildtype debug-optimized
+          meson build --bindir=. --prefix=$GITHUB_WORKSPACE/build/local -Dbuild_gem=true --buildtype debugoptimized
           cd build
           ninja
           ninja install
