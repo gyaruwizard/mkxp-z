@@ -15,8 +15,10 @@ runs:
     - name: Install apt dependencies
       shell: bash
       run: |
-        sudo apt update
-        sudo apt install bison zlib1g-dev libbz2-dev xorg-dev libgl1-mesa-dev libasound2-dev libpulse-dev -y
+        if [ "${{ runner.os }}" = "Linux" ]; then
+          sudo apt update
+          sudo apt install bison zlib1g-dev libbz2-dev xorg-dev libgl1-mesa-dev libasound2-dev libpulse-dev -y
+        fi
 
     - name: Create Fake Audio Device
       uses: LABSN/sound-ci-helpers@v1

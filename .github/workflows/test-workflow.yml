@@ -10,8 +10,29 @@ on:
     paths-ignore: [ '*.md', '*.json', '*.png' ]
 
 jobs:
-  test:
+  windows:
     name: Test Action Reusable Workflow
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: snow-actions/sparse-checkout@v1.2.0
+        with:
+          patterns: |
+            .github
+            tests
+            Rakefile
+
+      - name: Set Up MKXP-Z
+        uses: ./.github/actions/mkxp-z
+        with:
+          mkxpz-version: 2.4.2.win32.d23266a
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Test Gem
+        run:
+          rake
+
+  linux:
+    name: Linux
     runs-on: ubuntu-22.04
     steps:
       - uses: snow-actions/sparse-checkout@v1.2.0
