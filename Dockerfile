@@ -61,3 +61,4 @@ WORKDIR build
 RUN GEMNAME=$(find -type f -name 'mkxp-z-*.gem') && echo "$GEMNAME" && gem install "$GEMNAME"
 
 USER user
+RUN pacmd load-module module-null-sink sink_name=MySink
