@@ -159,8 +159,8 @@ jobs:
       - name: Push Gem to Registry
         run: |
           GEMFILES=(mkxp-z-*.gem)
-          echo "${GEMFILE[0]}"
-          gem push --key github --host https://rubygems.pkg.github.com/fcorso2016 "${GEMFILE[0]}"
+          echo "${GEMFILES[0]}"
+          gem push --key github --host https://rubygems.pkg.github.com/fcorso2016 "${GEMFILES[0]}"
 
       - name: Install sonar-scanner and build-wrapper
         uses: SonarSource/sonarcloud-github-c-cpp@v2
