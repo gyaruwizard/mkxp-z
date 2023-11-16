@@ -7,7 +7,7 @@ on:
     types: [ opened, synchronize, reopened ]
 jobs:
   setup-mkxp-z:
-    name: Sound Test
+    name: Setup MKXP-Z
     runs-on: ubuntu-22.04
     steps:
       - name: Create Fake Audio Device
