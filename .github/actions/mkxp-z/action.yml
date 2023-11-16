@@ -13,6 +13,7 @@ runs:
   using: "composite"
   steps:
     - name: Install apt dependencies
+      shell: bash
       run: |
         sudo apt update
         sudo apt install bison zlib1g-dev libbz2-dev xorg-dev libgl1-mesa-dev libasound2-dev libpulse-dev -y
