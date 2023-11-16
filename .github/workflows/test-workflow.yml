@@ -14,7 +14,12 @@ jobs:
     name: Test Action Reusable Workflow
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v3
+      - uses: snow-actions/sparse-checkout@v1.2.0
+        with:
+          patterns: |
+            .github
+            tests
+            Rakefile
 
       - name: Set Up MKXP-Z
         uses: ./.github/actions/mkxp-z
