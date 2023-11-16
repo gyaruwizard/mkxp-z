@@ -151,6 +151,16 @@ jobs:
           cd ..
           gem build mkxp-z.gemspec
 
+      - name: Ruby Gem Setup Credentials
+        uses: fac/ruby-gem-setup-credentials-action@v2.1.1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Push Gem to Registry
+        run: |
+          GEMFILE=(mkxp-z-*.gem)[0]
+          gem push --key github --host https://rubygems.pkg.github.com/fcorso2016 "$GEMFILE"
+
       - name: Install sonar-scanner and build-wrapper
         uses: SonarSource/sonarcloud-github-c-cpp@v2
 
@@ -169,17 +179,6 @@ jobs:
           cp -r ../../scripts .
           cd ..
           zip -r local.zip local
-
-      - name: Ruby Gem Setup Credentials
-        uses: fac/ruby-gem-setup-credentials-action@v2.1.1
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Push Gem to Registry
-        run: |
-          GEMFILE=(mkxp-z-*.gem)[0]
-          gem push --key github --host https://rubygems.pkg.github.com/fcorso2016 "$GEMFILE"
-
 
       - uses: actions/upload-artifact@v3
         with:
