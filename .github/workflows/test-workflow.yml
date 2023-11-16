@@ -17,7 +17,7 @@ jobs:
       - uses: actions/checkout@v3
 
       - name: Set Up MKXP-Z
-        uses: ./.github/actions/mkxp-z@setup
+        uses: ./.github/actions/mkxp-z
         with:
           mkxpz-version: 2.4.2.linux
 
