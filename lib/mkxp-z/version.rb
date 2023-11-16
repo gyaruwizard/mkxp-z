@@ -5,7 +5,7 @@ module MkxpZ
 
   def self.get_platform_name
     if RUBY_PLATFORM =~ /cygwin|mswin|mingw|bccwin|wince|emx/
-      return "windows"
+      return "win32"
     elsif RUBY_PLATFORM =~ /darwin/
       return "osx"
     else

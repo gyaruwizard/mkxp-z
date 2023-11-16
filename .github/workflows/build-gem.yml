@@ -89,7 +89,7 @@ jobs:
       - name: Push Gem to Registry
         if: github.ref == 'refs/heads/dev'
         run: |
-          $gemfile=@(gci mkxp-z-*.gem | Resolve-Path -Relative)[0]
+          $gemfile = @(gci mkxp-z-*.gem | Resolve-Path -Relative)[0]
           gem push --key github --host https://rubygems.pkg.github.com/fcorso2016 "${gemfile}"
 
       - name: Prepare archive
