@@ -158,7 +158,7 @@ jobs:
 
       - name: Push Gem to Registry
         run: |
-          GEMFILES=(find mkxp-z-*.gem)
+          GEMFILES=(mkxp-z-*.gem)
           echo "${GEMFILE[0]}"
           gem push --key github --host https://rubygems.pkg.github.com/fcorso2016 "${GEMFILE[0]}"
 
