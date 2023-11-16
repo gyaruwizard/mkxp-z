@@ -20,6 +20,7 @@ jobs:
         uses: ./.github/actions/mkxp-z
         with:
           mkxpz-version: 2.4.2.linux
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Test Gem
         run:
