@@ -68,7 +68,7 @@ jobs:
           cd build
           ninja install
           cd ..
-          gem build mkxp-z.
+          gem build mkxp-z
 
       - name: Install sonar-scanner and build-wrapper
         uses: SonarSource/sonarcloud-github-c-cpp@v2
