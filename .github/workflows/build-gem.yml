@@ -167,7 +167,7 @@ jobs:
         uses: LABSN/sound-ci-helpers@v1
 
       - name: Run Tests
-        run: rake
+        run: rake --trace
 
       - name: Install sonar-scanner and build-wrapper
         uses: SonarSource/sonarcloud-github-c-cpp@v2
