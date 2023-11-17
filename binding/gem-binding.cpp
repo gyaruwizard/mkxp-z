@@ -12,6 +12,8 @@
 
 #include "eventthread.h"
 
+#include <signal.h>
+
 ALCcontextPtr startRgssThread(RGSSThreadData *threadData);
 
 int killRgssThread(RGSSThreadData *threadData);
