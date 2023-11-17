@@ -79,7 +79,7 @@ jobs:
 
       - name: Run Tests
         run: |
-          $env:GLCONTEXT_WIN_LIBGL = "C:\msys64\${{ matrix.sys }}\bin\opengl32.dll"
+          $env:GLCONTEXT_WIN_LIBGL = "D:\a\_temp\msys64\${{ matrix.sys }}\bin\opengl32.dll"
           rake --trace
 
       - name: Install sonar-scanner and build-wrapper
