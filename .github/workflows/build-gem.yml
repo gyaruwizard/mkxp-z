@@ -70,6 +70,9 @@ jobs:
           cd ..
           gem build mkxp-z
 
+      - name: Start Audio Service
+        run: net start audiosrv
+
       - name: Create Fake Audio Device
         uses: LABSN/sound-ci-helpers@v1
 
