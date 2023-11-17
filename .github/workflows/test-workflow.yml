@@ -50,26 +50,4 @@ jobs:
 
       - name: Test Gem
         run:
-          rake
-
-  docker:
-    name: Docker
-    runs-on: ubuntu-22.04
-    container: ghcr.io/fcorso2016/mkxp-z:latest
-    steps:
-      - uses: snow-actions/sparse-checkout@v1.2.0
-        with:
-          patterns: |
-            .github
-            tests
-            Rakefile
-            setup_sound.sh
-
-      - name: Create Fake Audio Device
-        shell: bash
-        run: |
-          source setup_sound.sh
-
-      - name: Test Gem
-        run:
-          rake
+          rake --trace
