@@ -99,7 +99,9 @@ GemBinding::GemBinding() : alcCtx(nullptr, alcDestroyContext) {
 
 }
 
-GemBinding::~GemBinding() = default;
+GemBinding::~GemBinding() {
+    Debug() << "Gem binding destructing!";
+}
 
 GemBinding &GemBinding::getInstance() {
     static GemBinding gemBinding;
