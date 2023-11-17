@@ -156,7 +156,7 @@ jobs:
       - name: Build Ruby gem
         run: |
           source linux/vars.sh
-          meson build --bindir=. --prefix=$GITHUB_WORKSPACE/build/local -Dbuild_gem=true --buildtype debugoptimized
+          meson build --bindir=. --prefix=$GITHUB_WORKSPACE/build/local -Dbuild_gem=true --buildtype debug
           cd build
           ninja
           ninja install
