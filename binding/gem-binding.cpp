@@ -94,11 +94,10 @@ void handler(int sig) {
 
     // get void*'s for all entries on the stack
     size = backtrace(array, 10);
+    Debug() << "Got the backtrace!";
 
     // print out all the frames to stderr
-    char buffer[20];
-    sprintf(buffer, "Error: signal %d:\n", sig);
-    Debug() << buffer;
+    Debug() << "Error: signal " << sig << "\n";
     Debug() << backtrace_symbols(array, size);
     exit(1);
 }
