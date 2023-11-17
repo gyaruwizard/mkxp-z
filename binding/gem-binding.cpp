@@ -87,6 +87,8 @@ void killGameState(VALUE) {
 
 extern "C" {
 void handler(int sig) {
+    Debug() << "Segmentation fault caught!";
+
     void *array[10];
     size_t size;
 
