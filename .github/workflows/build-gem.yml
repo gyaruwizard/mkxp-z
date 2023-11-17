@@ -64,7 +64,7 @@ jobs:
         shell: msys2 {0}
         run: |
           source windows/vars.sh
-          meson build -Dbuild_gem=true --buildtype debugoptimized
+          meson build -Dbuild_gem=true
           cd build
           ninja install
           cd ..
@@ -75,6 +75,13 @@ jobs:
 
       - name: Create Fake Audio Device
         uses: LABSN/sound-ci-helpers@v1
+
+      - name: Install Mesa
+        run: |
+          curl.exe -L --output mesa.7z --url https://github.com/pal1000/mesa-dist-win/releases/download/20.3.2/mesa3d-20.3.2-release-msvc.7z
+          "C:\Program Files\7-Zip\7z.exe" x mesa.7z
+          echo "$(pwd)\x64" >> $GITHUB_PATH
+        working-directory: mesa
 
       - name: Run Tests
         run: rake --trace
@@ -165,7 +172,7 @@ jobs:
       - name: Build Ruby gem
         run: |
           source linux/vars.sh
-          meson build --bindir=. --prefix=$GITHUB_WORKSPACE/build/local -Dbuild_gem=true --buildtype debug
+          meson build --bindir=. --prefix=$GITHUB_WORKSPACE/build/local -Dbuild_gem=true
           cd build
           ninja
           ninja install
