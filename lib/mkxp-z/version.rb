@@ -12,4 +12,14 @@ module MkxpZ
       return "linux"
     end
   end
+
+  def self.get_full_version_name
+    base_version = MkxpZ::VERSION + "." + MkxpZ.get_platform_name
+    git_hash = `git rev-parse --short HEAD`
+    if git_hash != ""
+      base_version += "." + git_hash
+    end
+
+    return base_version
+  end
 end

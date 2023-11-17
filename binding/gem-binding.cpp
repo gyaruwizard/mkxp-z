@@ -96,8 +96,10 @@ void handler(int sig) {
     size = backtrace(array, 10);
 
     // print out all the frames to stderr
-    fprintf(stdout, "Error: signal %d:\n", sig);
-    backtrace_symbols_fd(array, size, STDOUT_FILENO);
+    char buffer[20];
+    sprintf(buffer, "Error: signal %d:\n", sig);
+    Debug() << buffer;
+    Debug() << backtrace_symbols(array, size);
     exit(1);
 }
 

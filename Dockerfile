@@ -52,8 +52,9 @@ RUN gem build mkxp-z.gemspec
 FROM base AS gem
 
 COPY --from=build build/mkxp-z/mkxp-z-*.gem build/
-COPY --from=build build/mkxp-z/startpulse.sh build/
-COPY --from=build build/mkxp-z/pulseaudio.service /etc/systemd/system
+COPY --from=build build/mkxp-z/setup_sound.sh build/
+COPY --from=build build/mkxp-z/tests build/tests
+COPY --from=build build/mkxp-z/Rakefile build/
 
 WORKDIR build
 RUN GEMNAME=$(find -type f -name 'mkxp-z-*.gem') && echo "$GEMNAME" && gem install "$GEMNAME"

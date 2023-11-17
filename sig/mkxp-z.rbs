@@ -1,5 +1,7 @@
 module MkxpZ
   VERSION: String
 
-  def get_platform_name: -> String
+  def self.get_full_version_name: -> String
+
+  def self.get_platform_name: -> String
 end
