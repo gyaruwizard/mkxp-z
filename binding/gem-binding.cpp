@@ -86,26 +86,7 @@ void killGameState(VALUE) {
 }
 
 extern "C" {
-void handler(int sig) {
-    Debug() << "Segmentation fault caught!";
-
-    void *array[10];
-    size_t size;
-
-    // get void*'s for all entries on the stack
-    Debug() << "About to get the backtrace";
-    size = backtrace(array, 10);
-    Debug() << "Got the backtrace!";
-
-    // print out all the frames to stderr
-    Debug() << "Error: signal " << sig << "\n";
-    Debug() << backtrace_symbols(array, size);
-    exit(1);
-}
-
 MKXPZ_GEM_EXPORT void Init_mkxpz() {
-    signal(SIGSEGV, handler);   // install our handler
-
     auto mkxpzModule = rb_define_module("MKXP_Z");
     _rb_define_module_function(mkxpzModule, "init_game_state", initGameState);
 
