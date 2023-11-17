@@ -137,4 +137,5 @@ void GemBinding::runEventThread(std::string windowName, std::vector<std::string>
     }
     startGameWindow((int) argv.size(), argv.data(), windowVisible);
     eventThreadKilled = true;
+    Debug() << "Event thread exiting!";
 }
