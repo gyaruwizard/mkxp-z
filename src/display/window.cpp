@@ -279,10 +279,11 @@ struct WindowPrivate
 
 	~WindowPrivate()
 	{
-		shState->texPool().release(baseTex);
-		cursorRectCon.disconnect();
-		prepareCon.disconnect();
-	}
+        if (shState != nullptr)
+            shState->texPool().release(baseTex);
+        cursorRectCon.disconnect();
+        prepareCon.disconnect();
+    }
 
 	void markControlVertDirty()
 	{

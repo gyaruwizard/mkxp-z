@@ -12,8 +12,6 @@
 
 #include "eventthread.h"
 
-#include <signal.h>
-
 ALCcontextPtr startRgssThread(RGSSThreadData *threadData);
 
 int killRgssThread(RGSSThreadData *threadData);
@@ -72,12 +70,7 @@ RB_METHOD(initGameState) {
     }
 }
 
-void shutdown_segfault_handler(int sig) {
-    Debug() << "Caught segfault from gem shutdown!";
-}
-
 void killGameState(VALUE) {
-    signal(SIGSEGV, shutdown_segfault_handler);
     auto &gemBinding = GemBinding::getInstance();
     if (const auto &threadManager = RgssThreadManager::getInstance(); threadManager.getThreadData() != nullptr) {
         killRgssThread(threadManager.getThreadData());
@@ -101,9 +94,7 @@ GemBinding::GemBinding() : alcCtx(nullptr, alcDestroyContext) {
 
 }
 
-GemBinding::~GemBinding() {
-    Debug() << "Gem binding destructing!";
-}
+GemBinding::~GemBinding() = default;
 
 GemBinding &GemBinding::getInstance() {
     static GemBinding gemBinding;
@@ -112,7 +103,7 @@ GemBinding &GemBinding::getInstance() {
 
 void GemBinding::stopEventThread() {
     if (eventThread != nullptr && !eventThreadKilled)
-        eventThread->join();
+        eventThread->request_stop();
 }
 
 void GemBinding::runEventThread(std::string windowName, std::vector<std::string> args, bool windowVisible) {
