@@ -93,6 +93,7 @@ void handler(int sig) {
     size_t size;
 
     // get void*'s for all entries on the stack
+    Debug() << "About to get the backtrace";
     size = backtrace(array, 10);
     Debug() << "Got the backtrace!";
 
