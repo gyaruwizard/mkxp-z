@@ -70,7 +70,12 @@ RB_METHOD(initGameState) {
     }
 }
 
+void shutdown_segfault_handler(int sig) {
+    Debug() << "Caught segfault from gem shutdown!";
+}
+
 void killGameState(VALUE) {
+    signal(SIGSEGV, shutdown_segfault_handler);
     auto &gemBinding = GemBinding::getInstance();
     if (const auto &threadManager = RgssThreadManager::getInstance(); threadManager.getThreadData() != nullptr) {
         killRgssThread(threadManager.getThreadData());
