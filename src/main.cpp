@@ -187,6 +187,7 @@ std::unique_ptr<ALCcontext, void (*)(ALCcontext *)> startRgssThread(RGSSThreadDa
 }
 
 int killRgssThread(RGSSThreadData *threadData) {
+        Debug() << "RGSS shutting down!";
 #endif
     threadData->rqTermAck.set();
     threadData->ethread->requestTerminate();
