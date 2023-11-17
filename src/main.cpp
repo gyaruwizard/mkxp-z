@@ -139,12 +139,14 @@ std::unique_ptr<ALCcontext, void (*)(ALCcontext *)> startRgssThread(RGSSThreadDa
 #ifdef MKXPZ_INIT_GL_LATER
     threadData->glContext =
             initGL(threadData->window, threadData->config, threadData);
-    if (!threadData->glContext)
+    if (!threadData->glContext) {
+        rgssThreadError(threadData, "Error creating OpenGL context");
 #ifdef MKXPZ_RUBY_GEM
-        throw std::system_error();
+        throw std::system_error(std::error_code(), "RGSS failed to initialize!");
 #else
-    return 0;
+        return 0;
 #endif
+    }
 #else
     SDL_GL_MakeCurrent(threadData->window, threadData->glContext);
 #endif
