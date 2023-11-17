@@ -19,7 +19,7 @@ RUN make
 
 WORKDIR ..
 COPY . .
-RUN source linux/vars.sh; meson build -Dbuild_gem=true;
+RUN source linux/vars.sh; meson build -Dbuild_gem=true --buildtype debug
 
 WORKDIR build
 RUN ninja
