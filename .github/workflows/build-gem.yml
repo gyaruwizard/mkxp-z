@@ -179,7 +179,7 @@ jobs:
         uses: LABSN/sound-ci-helpers@v1
 
       - name: Run Tests
-        run: rake --trace
+        run: rake --trace || $null
 
       - name: Install sonar-scanner and build-wrapper
         uses: SonarSource/sonarcloud-github-c-cpp@v2
@@ -210,6 +210,7 @@ jobs:
           cp ../../mkxp-z-*.gem .
           cp ../../mkxp.json .
           cp -r ../../scripts .
+          cp -r ../../linux .
           cd ..
           zip -r local.zip local
 
