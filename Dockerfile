@@ -31,7 +31,7 @@ FROM base AS run-environment
 
 SHELL ["/bin/bash", "-c"]
 
-RUN apt update && apt-get install -y curl bzip2 libssl-dev libreadline-dev
+RUN apt update && apt-get install -y curl bzip2 libssl-dev libreadline-dev gdb
 
 RUN curl -fsSL https://github.com/rbenv/rbenv-installer/raw/main/bin/rbenv-installer | bash
 ENV PATH="/root/.rbenv/bin:$PATH"

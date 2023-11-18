@@ -225,7 +225,9 @@ static void rgssThreadError(RGSSThreadData *rtData, std::string_view msg) {
 
 static void showInitError(const std::string &msg) {
     Debug() << msg;
+#ifndef MKXPZ_RUBY_GEM
     SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "mkxp-z", msg.c_str(), nullptr);
+#endif
 }
 
 static void setupWindowIcon(const Config &conf, SDL_Window *win) {
@@ -358,6 +360,7 @@ int main(int argc, char *argv[]) {
 
         return 0;
     }
+
 #if defined(__WIN32__)
     WSAData wsadata = {0};
     if (WSAStartup(0x101, &wsadata) || wsadata.wVersion != 0x101) {
@@ -453,10 +456,10 @@ int main(int argc, char *argv[]) {
 
     if (!alcDev) {
         showInitError("Could not detect an available audio device.");
-        SDL_DestroyWindow(win);
-        TTF_Quit();
-        IMG_Quit();
-        SDL_Quit();
+        //SDL_DestroyWindow(win);
+        //TTF_Quit();
+        //IMG_Quit();
+        //SDL_Quit();
 
 #ifdef MKXPZ_STEAM
         STEAMSHIM_deinit();
@@ -556,6 +559,7 @@ int main(int argc, char *argv[]) {
     Debug() << "Shutting down.";
 
     alcCloseDevice(alcDev);
+    return 0;
     SDL_DestroyWindow(win);
 
 #if defined(__WIN32__)
