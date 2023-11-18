@@ -48,8 +48,7 @@ RB_METHOD(initGameState) {
     rb_bool_arg(visible, &windowVisible);
 
     auto &gemBinding = GemBinding::getInstance();
-    gemBinding.setEventThread(
-            std::make_unique<std::jthread>(&GemBinding::runEventThread, &gemBinding, appName, argList, windowVisible));
+    gemBinding.startEventThread(std::move(appName), std::move(argList), windowVisible);
 
     const auto &threadManager = RgssThreadManager::getInstance();
     while (threadManager.getThreadData() == nullptr) {
@@ -106,13 +105,21 @@ void GemBinding::stopEventThread() {
         eventThread->request_stop();
 }
 
-void GemBinding::runEventThread(std::string windowName, std::vector<std::string> args, bool windowVisible) {
+void GemBinding::startEventThread(std::string &&windowName, std::vector<std::string> &&args, bool windowVisible) {
+    rgssWindowName = std::move(windowName);
+    eventThreadArgs = std::move(args);
+    showWindow = windowVisible;
+
+    eventThread = std::make_unique<std::jthread>(&GemBinding::runEventThread, this);
+}
+
+void GemBinding::runEventThread() {
     std::vector<char *> argv;
-    argv.push_back(windowName.data());
-    for (auto &a : args) {
+    argv.push_back(rgssWindowName.data());
+    for (auto &a: eventThreadArgs) {
         argv.push_back(a.data());
     }
-    startGameWindow((int) argv.size(), argv.data(), windowVisible);
+    startGameWindow((int) argv.size(), argv.data(), showWindow);
     eventThreadKilled = true;
     Debug() << "Event thread exiting!";
 }
