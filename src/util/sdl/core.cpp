@@ -14,7 +14,7 @@ namespace SDL2 {
 
     Core::Core(Uint32 flags) {
         if (SDL_Init(flags) >= 0)
-            startedSuccessfully();
+            startupSucceeded();
         else
             startupFailed(std::string("Error initializing SDL: ") + SDL_GetError());
     }

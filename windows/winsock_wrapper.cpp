@@ -11,7 +11,9 @@
 #include <array>
 
 WinSock::WinSock() {
-    if (WSAStartup(0x101, &wsadata) || wsadata.wVersion != 0x101) {
+    if (WSAStartup(0x101, &wsadata) || wsadata.wVersion == 0x101)
+        startupSucceeded();
+    else {
         std::array<char, 200> buf{};
         snprintf(buf.data(), buf.size(), "Error initializing winsock: %08X",
                  WSAGetLastError());
