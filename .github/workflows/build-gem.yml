@@ -78,8 +78,8 @@ jobs:
         uses: LABSN/sound-ci-helpers@v1
 
       - name: Run Tests
+        shell: msys2 {0}
         run: |
-          $env:GLCONTEXT_WIN_LIBGL = "D:\a\_temp\msys64\${{ matrix.sys }}\bin\opengl32.dll"
           rake --trace
 
       - name: Install sonar-scanner and build-wrapper
