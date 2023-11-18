@@ -44,6 +44,11 @@
 #include "display/gl/gl-debug.h"
 #include "display/gl/gl-fun.h"
 
+#include "core.h"
+#include "image.h"
+#include "ttf.h"
+#include "sound.h"
+
 #include "filesystem/filesystem.h"
 
 #include "system/system.h"
@@ -51,12 +56,8 @@
 #if defined(__WIN32__)
 #include "resource.h"
 #include <Winsock2.h>
-#include "util/win-consoleutils.h"
-#include "core.h"
-#include "image.h"
-#include "ttf.h"
-#include "sound.h"
 #include "winsock_wrapper.h"
+#include "util/win-consoleutils.h"
 
 // Try to work around buggy GL drivers that tend to be in Optimus laptops
 // by forcing MKXP to use the dedicated card instead of the integrated one
