@@ -279,7 +279,7 @@ int main(int argc, char *argv[]) {
     }
 
     SDL2::TTF ttf;
-    if (ttf.startedSuccessfully()) {
+    if (!ttf.startedSuccessfully()) {
       showInitError(ttf.getErrorMessage());
       return 0;
     }
