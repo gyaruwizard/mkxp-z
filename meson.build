@@ -59,6 +59,7 @@ if steamworks_path != ''
         global_include_dirs += include_directories('steamshim')
         global_args += '-DMKXPZ_STEAM'
         global_sources += 'steamshim/steamshim_child.c'
+        global_sources += 'steamshim/steamshim_wrapper.ppc'
         steamworks = true
     endif
 endif

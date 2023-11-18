@@ -93,7 +93,7 @@ global_include_dirs += include_directories('.',
     'input',
     'net',
     'system',
-    'util', 'util/sigslot', 'util/sigslot/adapter'
+    'util', 'util/sigslot', 'util/sigslot/adapter', 'util/sdl'
 )
 
 global_dependencies += [openal, zlib, bz2, sdl2, sdl_sound, pixman, physfs, theora, vorbisfile, vorbis, ogg, sdl2_ttf, freetype, sdl2_image, png, iconv, uchardet]
@@ -162,7 +162,12 @@ main_source = files(
     'display/gl/vertex.cpp',
 
     'util/iniconfig.cpp',
+    'util/raiiwrapper.cpp',
     'util/win-consoleutils.cpp',
+    'util/sdl/core.cpp',
+    'util/sdl/image.cpp',
+    'util/sdl/ttf.cpp',
+    'util/sdl/sound.cpp',
     
     'etc/etc.cpp',
     'etc/table.cpp',
