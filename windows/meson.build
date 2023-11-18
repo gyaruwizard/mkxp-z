@@ -9,4 +9,4 @@ windows_resource_directory + '/resource.rc'
 
 windows_resources = win.compile_resources(windows_resource_directory + '/resource.rc', depend_files: res)
 
-global_sources += 'windows/wsadatawrapper.cpp'
+global_sources += 'windows/winsock_wrapper.cpp'
