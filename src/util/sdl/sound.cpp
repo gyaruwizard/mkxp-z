@@ -13,7 +13,7 @@
 namespace SDL2 {
     Sound::Sound() {
         if (Sound_Init() != 0)
-            startedSuccessfully();
+            startupSucceeded();
         else
             startupFailed(std::string("Error initializing SDL_sound: ") + Sound_GetError());
     }

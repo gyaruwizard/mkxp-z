@@ -12,7 +12,7 @@
 
 SteamShimWrapper::SteamShimWrapper() {
     if (STEAMSHIM_init())
-        startedSuccessfully();
+        startupSucceeded();
     else
         startupFailed("Failed to initialize Steamworks. The application cannot "
                       "continue launching.");

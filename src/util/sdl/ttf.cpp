@@ -13,7 +13,7 @@
 namespace SDL2 {
     TTF::TTF() {
         if (TTF_Init() >= 0)
-            startedSuccessfully();
+            startupSucceeded();
         else
             startupFailed(std::string("Error initializing SDL_ttf: ") +
                           SDL_GetError());

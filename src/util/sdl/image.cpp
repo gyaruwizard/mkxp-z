@@ -13,7 +13,7 @@
 namespace SDL2 {
     Image::Image(int flags) {
         if (IMG_Init(flags) == flags)
-            startedSuccessfully();
+            startupSucceeded();
         else
             startupFailed(std::string("Error initializing SDL_image: ") +
                           SDL_GetError());
