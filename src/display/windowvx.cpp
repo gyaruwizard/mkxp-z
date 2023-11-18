@@ -273,12 +273,13 @@ struct WindowVXPrivate
 
 	~WindowVXPrivate()
 	{
-		shState->texPool().release(base.tex);
+        if (shState != nullptr)
+            shState->texPool().release(base.tex);
 
-		cursorRectCon.disconnect();
-		toneCon.disconnect();
-		prepareCon.disconnect();
-	}
+        cursorRectCon.disconnect();
+        toneCon.disconnect();
+        prepareCon.disconnect();
+    }
 
 	void invalidateCursorVert()
 	{

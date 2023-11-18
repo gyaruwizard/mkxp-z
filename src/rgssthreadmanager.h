@@ -46,6 +46,6 @@ private:
     static RgssThreadManager instance;
 
     RGSSThreadData *threadData = nullptr;
-    std::unique_ptr<std::scoped_lock<std::mutex>> rgssThreadLock;
     std::mutex rgssThreadMutex;
+    std::unique_ptr<std::scoped_lock<std::mutex>> rgssThreadLock;
 };

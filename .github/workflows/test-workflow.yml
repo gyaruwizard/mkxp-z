@@ -50,4 +50,4 @@ jobs:
 
       - name: Test Gem
         run:
-          rake
+          rake --trace

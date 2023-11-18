@@ -693,8 +693,9 @@ struct MidiSource : ALDataSource, MidiReadHandler
 
 	~MidiSource()
 	{
-		shState->midiState().releaseSynth(synth);
-	}
+        if (shState != nullptr)
+            shState->midiState().releaseSynth(synth);
+    }
 
 
 	void updatePlaybackSpeed(uint32_t bpm)

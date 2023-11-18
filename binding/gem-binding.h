@@ -34,14 +34,14 @@ public:
 
     void stopEventThread();
 
-    void runEventThread(std::string windowName, std::vector<std::string> args, bool windowVisible);
+    void startEventThread(std::string &&windowName, std::vector<std::string> &&args, bool windowVisible);
 
+private:
+    void runEventThread();
+
+public:
     inline bool isEventThreadKilled() const {
         return eventThreadKilled;
-    }
-
-    inline void setEventThread(std::unique_ptr<std::jthread> &&thread) {
-        eventThread = std::move(thread);
     }
 
     inline void setAlcContext(ALCcontextPtr &&ctx) {
@@ -53,6 +53,10 @@ public:
     }
 
 private:
+    std::string rgssWindowName;
+    std::vector<std::string> eventThreadArgs;
+    bool showWindow = false;
+
     std::unique_ptr<std::jthread> eventThread;
     ALCcontextPtr alcCtx;
     bool eventThreadKilled = false;
