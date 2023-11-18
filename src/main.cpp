@@ -60,6 +60,11 @@
 #include <winsock2.h>
 #include "util/win-consoleutils.h"
 #include "filesystem.hpp"
+#include "core.h"
+#include "image.h"
+#include "ttf.h"
+#include "sound.h"
+#include "winsock_wrapper.h"
 
 // Try to work around buggy GL drivers that tend to be in Optimus laptops
 // by forcing MKXP to use the dedicated card instead of the integrated one
@@ -72,7 +77,7 @@ __declspec(dllexport) int AmdPowerXpressRequestHighPerformance = 1;
 #endif
 
 #ifdef MKXPZ_STEAM
-#include "steamshim_child.h"
+#include "steamshimwrapper.h"
 #endif
 
 #ifdef MKXPZ_BUILD_XCODE
@@ -263,9 +268,10 @@ int main(int argc, char *argv[]) {
 #endif
 
     /* initialize SDL first */
-    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMECONTROLLER) < 0) {
-        showInitError(std::string("Error initializing SDL: ") + SDL_GetError());
-        return 0;
+    SDL2::Core sdl(SDL_INIT_VIDEO | SDL_INIT_GAMECONTROLLER);
+    if (!sdl.startedSuccessfully()) {
+      showInitError(sdl.getErrorMessage());
+      return 0;
     }
 
     if (!EventThread::allocUserEvents()) {
@@ -307,10 +313,9 @@ int main(int argc, char *argv[]) {
 #endif
 
 #ifdef MKXPZ_STEAM
-    if (!STEAMSHIM_init()) {
-      showInitError("Failed to initialize Steamworks. The application cannot "
-                    "continue launching.");
-      SDL_Quit();
+    SteamshimWrapper steam;
+    if (!steam.startedSuccessfully()) {
+      showInitError(steam.getErrorMessage());
       return 0;
     }
 #endif
@@ -321,58 +326,32 @@ int main(int argc, char *argv[]) {
     assert(conf.rgssVersion >= 1 && conf.rgssVersion <= 3);
     printRgssVersion(conf.rgssVersion);
 
-    int imgFlags = IMG_INIT_PNG | IMG_INIT_JPG;
-    if (IMG_Init(imgFlags) != imgFlags) {
-        showInitError(std::string("Error initializing SDL_image: ") +
-                      SDL_GetError());
-        SDL_Quit();
-
-#ifdef MKXPZ_STEAM
-        STEAMSHIM_deinit();
-#endif
-
-        return 0;
+    SDL2::Image image(IMG_INIT_PNG | IMG_INIT_JPG);
+    if (!image.startedSuccessfully()) {
+      showInitError(image.getErrorMessage());
+      return 0;
     }
 
-    if (TTF_Init() < 0) {
-        showInitError(std::string("Error initializing SDL_ttf: ") +
-                      SDL_GetError());
-        IMG_Quit();
-        SDL_Quit();
-
-#ifdef MKXPZ_STEAM
-        STEAMSHIM_deinit();
-#endif
-
-        return 0;
+    SDL2::TTF ttf;
+    if (ttf.startedSuccessfully()) {
+      showInitError(ttf.getErrorMessage());
+      return 0;
     }
 
-    if (Sound_Init() == 0) {
-        showInitError(std::string("Error initializing SDL_sound: ") +
-                      Sound_GetError());
-        TTF_Quit();
-        IMG_Quit();
-        SDL_Quit();
-
-#ifdef MKXPZ_STEAM
-        STEAMSHIM_deinit();
-#endif
-
-        return 0;
+    SDL2::Sound sound;
+    if (!sound.startedSuccessfully()) {
+      showInitError(sound.getErrorMessage());
+      return 0;
     }
 
 #if defined(__WIN32__)
-    WSAData wsadata = {0};
-    if (WSAStartup(0x101, &wsadata) || wsadata.wVersion != 0x101) {
-        std::array<char, 200> buf;
-        snprintf(buf.data(), buf.size(), "Error initializing winsock: %08X",
-                 WSAGetLastError());
-        showInitError(
-                std::string(buf.data())); // Not an error worth ending the program over
+    WinSock winSock;
+    if (!winSock.startedSuccessfully()) {
+      showInitError(winSock.getErrorMessage()); // Not an error worth ending the program over
     }
 #endif
 
-    SDL_Window *win;
+    std::unique_ptr<SDL_Window, void(*)(SDL_Window*)> win(nullptr, &SDL_DestroyWindow);
     Uint32 winFlags = SDL_WINDOW_OPENGL | SDL_WINDOW_INPUT_FOCUS | SDL_WINDOW_ALLOW_HIGHDPI;
 
     if (conf.winResizable)
@@ -396,18 +375,14 @@ int main(int argc, char *argv[]) {
     SDL_GL_LoadLibrary("@rpath/libEGL.dylib");
 #endif
 #endif
-
-    win = SDL_CreateWindow(conf.windowTitle.c_str(), SDL_WINDOWPOS_UNDEFINED,
+    
+    win.reset(SDL_CreateWindow(conf.windowTitle.c_str(), SDL_WINDOWPOS_UNDEFINED,
                            SDL_WINDOWPOS_UNDEFINED, conf.defScreenW,
-                           conf.defScreenH, winFlags);
+                           conf.defScreenH, winFlags));
 
     if (!win) {
-        showInitError(std::string("Error creating window: ") + SDL_GetError());
-
-#ifdef MKXPZ_STEAM
-        STEAMSHIM_deinit();
-#endif
-        return 0;
+      showInitError(std::string("Error creating window: ") + SDL_GetError());
+      return 0;
     }
 
 #ifdef MKXPZ_BUILD_XCODE
@@ -419,9 +394,6 @@ int main(int argc, char *argv[]) {
                           " cannot run from the Downloads directory.\n\n" +
                           "Please move the application to the Applications folder (or anywhere else) " +
                           "and try again.");
-#ifdef MKXPZ_STEAM
-            STEAMSHIM_deinit();
-#endif
             return 0;
         }
     }
@@ -452,19 +424,11 @@ int main(int argc, char *argv[]) {
 #endif
 #endif
 
-    ALCdevice *alcDev = alcOpenDevice(nullptr);
+    std::unique_ptr<ALCdevice, ALCboolean(*)(ALCdevice*)> alcDev(alcOpenDevice(nullptr), &alcCloseDevice);
 
     if (!alcDev) {
-        showInitError("Could not detect an available audio device.");
-        //SDL_DestroyWindow(win);
-        //TTF_Quit();
-        //IMG_Quit();
-        //SDL_Quit();
-
-#ifdef MKXPZ_STEAM
-        STEAMSHIM_deinit();
-#endif
-        return 0;
+      showInitError("Could not detect an available audio device.");
+      return 0;
     }
 
     SDL_DisplayMode mode;
@@ -482,17 +446,17 @@ int main(int argc, char *argv[]) {
     SDL_GLContext glCtx = nullptr;
 #endif
 
-    RGSSThreadData rtData(&eventThread, argv[0], win, alcDev, mode.refresh_rate,
+    RGSSThreadData rtData(&eventThread, argv[0], win.get(), alcDev.get(), mode.refresh_rate,
                           mkxp_sys::getScalingFactor(), conf, glCtx);
+
+    int winW;
+    int winH;
+    SDL_GetWindowSize(win.get(), &winW, &winH);
+    rtData.windowSizeMsg.post(Vec2i(winW, winH));
 
     int drwW;
     int drwH;
-    int winW;
-    int winH;
-    SDL_GetWindowSize(win, &winW, &winH);
-    rtData.windowSizeMsg.post(Vec2i(winW, winH));
-
-    SDL_GL_GetDrawableSize(win, &drwW, &drwH);
+    SDL_GL_GetDrawableSize(win.get(), &drwW, &drwH);
     rtData.drawableSizeMsg.post(Vec2i(drwW, drwH));
 
     /* Load and post key bindings */
@@ -538,16 +502,16 @@ int main(int argc, char *argv[]) {
     if (rtData.rqTermAck)
       SDL_WaitThread(rgssThread, nullptr);
     else
-        SDL_ShowSimpleMessageBox(
-                SDL_MESSAGEBOX_ERROR, conf.game.title.c_str(),
-                std::string("The RGSS script seems to be stuck. "+conf.game.title+" will now force quit.").c_str(),
-                win);
+      SDL_ShowSimpleMessageBox(
+          SDL_MESSAGEBOX_ERROR, conf.game.title.c_str(),
+          std::string("The RGSS script seems to be stuck. "+conf.game.title+" will now force quit.").c_str(),
+          win.get());
 #endif
 
     if (!rtData.rgssErrorMsg.empty()) {
-        Debug() << rtData.rgssErrorMsg;
-        SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, conf.game.title.c_str(),
-                                 rtData.rgssErrorMsg.c_str(), win);
+      Debug() << rtData.rgssErrorMsg;
+      SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, conf.game.title.c_str(),
+                               rtData.rgssErrorMsg.c_str(), win.get());
     }
 
     if (rtData.glContext)
@@ -557,27 +521,6 @@ int main(int argc, char *argv[]) {
     eventThread.cleanup();
 
     Debug() << "Shutting down.";
-
-    alcCloseDevice(alcDev);
-    return 0;
-    SDL_DestroyWindow(win);
-
-#if defined(__WIN32__)
-    if (wsadata.wVersion)
-        WSACleanup();
-#endif
-
-#ifdef MKXPZ_STEAM
-    STEAMSHIM_deinit();
-#endif
-    Sound_Quit();
-    TTF_Quit();
-    IMG_Quit();
-    SDL_Quit();
-
-#ifdef MKXPZ_RUBY_GEM
-    RgssThreadManager::getInstance().setThreadData(nullptr);
-#endif
     return 0;
 }
 
