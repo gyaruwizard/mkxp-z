@@ -140,7 +140,6 @@ std::unique_ptr<ALCcontext, void (*)(ALCcontext *)> startRgssThread(RGSSThreadDa
     threadData->glContext =
             initGL(threadData->window, threadData->config, threadData);
     if (!threadData->glContext) {
-        Debug() << "Error creating OpenGL context!";
 #ifdef MKXPZ_RUBY_GEM
         RgssThreadManager::getInstance().unlockRgssThread();
         throw std::system_error(std::error_code(), "RGSS failed to initialize!");
@@ -218,6 +217,10 @@ static void rgssThreadError(RGSSThreadData *rtData, std::string_view msg) {
     rtData->rgssErrorMsg = msg;
     rtData->ethread->requestTerminate();
     rtData->rqTermAck.set();
+
+#ifdef MKXPZ_RUBY_GEM
+    Debug() << msg.data();
+#endif
 }
 
 static void showInitError(const std::string &msg) {
@@ -436,12 +439,14 @@ int main(int argc, char *argv[]) {
     }
 #endif
 
+#ifndef MKXPZ_RUBY_GEM
     /* OSX and Windows have their own native ways of
      * dealing with icons; don't interfere with them */
 #ifdef __LINUX__
     setupWindowIcon(conf, win);
 #else
     (void) setupWindowIcon;
+#endif
 #endif
 
     ALCdevice *alcDev = alcOpenDevice(nullptr);
