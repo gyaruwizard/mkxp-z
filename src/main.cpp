@@ -27,21 +27,22 @@
 
 #include <SDL.h>
 #include <SDL_image.h>
-#include <SDL_sound.h>
-#include <SDL_ttf.h>
 
 #include <assert.h>
-#include <string.h>
 #include <string>
-#include <unistd.h>
 #include <regex>
+#include <string_view>
+#include <array>
+
+#ifdef MKXPZ_RUBY_GEM
+#include "rgssthreadmanager.h"
+#endif
 
 #include "binding.h"
 #include "sharedstate.h"
 #include "eventthread.h"
 #include "util/debugwriter.h"
 #include "util/exception.h"
-#include "display/gl/gl-debug.h"
 #include "display/gl/gl-fun.h"
 
 #include "core.h"
