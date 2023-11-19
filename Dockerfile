@@ -1,48 +1,59 @@
-FROM ubuntu:22.04 AS base
+FROM ruby:3.1.4 AS base
 
-RUN apt update && apt install git build-essential gcc-12 g++-12 zlib1g-dev libbz2-dev xorg-dev libgl1-mesa-dev  \
-    libasound2-dev libpulse-dev -y
+RUN apt-get update && apt-get --no-install-recommends install -y zlib1g-dev libbz2-dev xorg-dev libgl1-mesa-dev  \
+    libasound2-dev libpulse-dev && apt-get clean
 
-FROM base AS mkxp-z
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    mesa-utils \
+    libgl1-mesa-dri \
+    libgl1-mesa-glx \
+    libglu1-mesa \
+    mesa-common-dev && apt-get clean
+
+RUN apt-get update && apt-get --no-install-recommends install -y \
+   xvfb \
+   x11-utils \
+   xfonts-base \
+   xfonts-75dpi \
+   xfonts-100dpi \
+   xfonts-scalable \
+   xfonts-100dpi \
+   x11-apps \
+   && apt-get clean
+
+ENV LIBGL_ALWAYS_INDIRECT=1
+
+RUN apt-get update -y && \
+    apt-get install -y --no-install-recommends alsa-utils pulseaudio libpulse0 && \
+    apt-get clean
+
+FROM base AS dev
 
 SHELL ["/bin/bash", "-c"]
 
-WORKDIR /app
+RUN apt-get update && apt-get --no-install-recommends install -y git build-essential cmake meson autoconf automake \
+    libtool pkg-config bison wget xxd && apt-get clean
 
-RUN apt update && apt install ruby cmake meson autoconf automake xxd wget libtool pkg-config bison -y
+FROM dev AS deps
+COPY ./linux/Makefile build/mkxp-z/linux/
+WORKDIR build/mkxp-z/linux
+RUN export CMAKE_EXTRA_ARGS="-DCMAKE_POSITION_INDEPENDENT_CODE=ON" && export EXTRA_CONFIG_OPTIONS=" --with-pic" && make deps-core
 
-COPY ./linux/Makefile linux/Makefile
-WORKDIR linux
-ENV CMAKE_EXTRA_ARGS='-DCMAKE_POSITION_INDEPENDENT_CODE=ON'
-ENV EXTRA_CONFIG_OPTIONS='--with-pic'
-RUN make
-
-WORKDIR ..
-COPY . .
-RUN source linux/vars.sh; meson build -Dbuild_gem=true --buildtype debug
-
-WORKDIR build
-RUN ninja
+FROM dev AS build
+COPY . build/mkxp-z
+COPY --from=deps build/mkxp-z/linux/ build/mkxp-z/linux/
+WORKDIR build/mkxp-z/linux
+RUN source vars.sh; cd ..; meson build -Dbuild_gem=true -Dwith_lanczos3=false; cd build && ninja
 
 WORKDIR ..
 RUN cp build/mkxpz.so lib/mkxp-z
+RUN gem build mkxp-z.gemspec
 
-FROM base AS run-environment
+FROM base AS gem
 
-SHELL ["/bin/bash", "-c"]
+COPY --from=build build/mkxp-z/mkxp-z-*.gem build/
+COPY --from=build build/mkxp-z/tests build/tests
+COPY --from=build build/mkxp-z/Rakefile build/
 
-RUN apt update && apt-get install -y curl bzip2 libssl-dev libreadline-dev gdb
-
-RUN curl -fsSL https://github.com/rbenv/rbenv-installer/raw/main/bin/rbenv-installer | bash
-ENV PATH="/root/.rbenv/bin:$PATH"
-RUN echo 'export PATH="$HOME/.rbenv/bin:$PATH"' >> ~/.bashrc
-RUN echo 'eval "$(rbenv init -)"' >> ~/.bashrc
-RUN rbenv install 3.1.4
-RUN rbenv global 3.1.4
-
-RUN apt install -y pulseaudio libportaudio2 dbus-x11
-
-WORKDIR /app
-COPY --from=mkxp-z /app/lib ./lib
-COPY --from=mkxp-z /app/tests ./tests
-COPY --from=mkxp-z /app/Rakefile .
+WORKDIR build
+RUN GEMNAME=$(find -type f -name 'mkxp-z-*.gem') && echo "$GEMNAME" && gem install "$GEMNAME"

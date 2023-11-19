@@ -151,18 +151,11 @@ std::unique_ptr<ALCcontext, void (*)(ALCcontext *)> startRgssThread(RGSSThreadDa
 #endif
 
   /* Setup AL context */
-  std::unique_ptr<ALCcontext, void (*)(ALCcontext *)> alcCtx(alcCreateContext(threadData->alcDev, 0),
-                                                             alcDestroyContext);
+  std::unique_ptr<ALCcontext, void (*)(ALCcontext *)> alcCtx(alcCreateContext(threadData->alcDev, nullptr),
+                                                             &alcDestroyContext);
 
-    if (!alcCtx) {
-        rgssThreadError(threadData, "Error creating OpenAL context");
-#ifdef MKXPZ_RUBY_GEM
-        RgssThreadManager::getInstance().unlockRgssThread();
-        throw std::system_error(std::error_code(), "RGSS failed to initialize!");
-#else
-        return 0;
-#endif
-    }
+    if (!alcCtx)
+        Debug() << "Error creating OpenAL context";
 
     alcMakeContextCurrent(alcCtx.get());
 
@@ -369,7 +362,7 @@ int main(int argc, char *argv[]) {
     SDL_GL_LoadLibrary("@rpath/libEGL.dylib");
 #endif
 #endif
-    
+
     win.reset(SDL_CreateWindow(conf.windowTitle.c_str(), SDL_WINDOWPOS_UNDEFINED,
                            SDL_WINDOWPOS_UNDEFINED, conf.defScreenW,
                            conf.defScreenH, winFlags));
@@ -418,12 +411,10 @@ int main(int argc, char *argv[]) {
 #endif
 #endif
 
-    std::unique_ptr<ALCdevice, ALCboolean(*)(ALCdevice*)> alcDev(alcOpenDevice(nullptr), &alcCloseDevice);
+    std::unique_ptr<ALCdevice, ALCboolean(*)(ALCdevice*)> alcDev(alcOpenDevice("null"), &alcCloseDevice);
 
-    if (!alcDev) {
-      showInitError("Could not detect an available audio device.");
-      return 0;
-    }
+    if (!alcDev)
+      Debug() << "Could not detect an available audio device.";
 
     SDL_DisplayMode mode;
     SDL_GetDisplayMode(0, 0, &mode);
