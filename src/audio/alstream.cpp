@@ -37,12 +37,7 @@
 
 ALStream::ALStream(LoopMode loopMode,
 		           const std::string &threadId)
-	: looped(loopMode == Looped),
-	  state(Closed),
-	  source(0),
-	  thread(0),
-	  preemptPause(false),
-      pitch(1.0f)
+	: looped(loopMode == Looped)
 {
 	alSrc = AL::Source::gen();
 

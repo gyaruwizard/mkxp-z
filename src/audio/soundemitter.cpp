@@ -45,35 +45,13 @@ struct SoundBuffer
 	/* Buffer byte count */
 	uint32_t bytes;
 
-	/* Reference count */
-	uint8_t refCount;
-
 	SoundBuffer()
-	    : link(this),
-	      refCount(1)
+	    : link(this)
 
 	{
 		alBuffer = AL::Buffer::gen();
 	}
 
-	static SoundBuffer *ref(SoundBuffer *buffer)
-	{
-		++buffer->refCount;
-
-		return buffer;
-	}
-
-	static void deref(SoundBuffer *buffer)
-	{
-		if (--buffer->refCount == 0)
-			delete buffer;
-	}
-
-private:
-	~SoundBuffer()
-	{
-		AL::Buffer::del(alBuffer);
-	}
 };
 
 /* Before: [a][b][c][d], After (index=1): [a][c][d][b] */
@@ -98,7 +76,7 @@ SoundEmitter::SoundEmitter(const Config &conf)
 	for (size_t i = 0; i < srcCount; ++i)
 	{
 		alSrcs[i] = AL::Source::gen();
-		atchBufs[i] = 0;
+		atchBufs[i] = nullptr;
 		srcPrio[i] = i;
 	}
 }
@@ -109,14 +87,7 @@ SoundEmitter::~SoundEmitter()
 	{
 		AL::Source::stop(alSrcs[i]);
 		AL::Source::del(alSrcs[i]);
-
-		if (atchBufs[i])
-			SoundBuffer::deref(atchBufs[i]);
 	}
-
-	BufferHash::const_iterator iter;
-	for (iter = bufferHash.cbegin(); iter != bufferHash.cend(); ++iter)
-		SoundBuffer::deref(iter->second);
 }
 
 void SoundEmitter::play(const std::string &filename,
@@ -126,7 +97,7 @@ void SoundEmitter::play(const std::string &filename,
 	float _volume = clamp<int>(volume, 0, 100) / 100.0f;
 	float _pitch  = clamp<int>(pitch, 50, 150) / 100.0f;
 
-	SoundBuffer *buffer = allocateBuffer(filename);
+	auto buffer = allocateBuffer(filename);
 
 	if (!buffer)
 		return;
@@ -162,12 +133,7 @@ void SoundEmitter::play(const std::string &filename,
 	if (switchBuffer)
 		AL::Source::detachBuffer(src);
 
-	SoundBuffer *old = atchBufs[srcIndex];
-
-	if (old)
-		SoundBuffer::deref(old);
-
-	atchBufs[srcIndex] = SoundBuffer::ref(buffer);
+	atchBufs[srcIndex] = buffer;
 
 	if (switchBuffer)
 		AL::Source::attachBuffer(src, buffer->alBuffer);
@@ -186,15 +152,14 @@ void SoundEmitter::stop()
 
 struct SoundOpenHandler : FileSystem::OpenHandler
 {
-	SoundBuffer *buffer;
+	std::shared_ptr<SoundBuffer> buffer;
 
-	SoundOpenHandler()
-	    : buffer(0)
-	{}
+	SoundOpenHandler() = default;
+    ~SoundOpenHandler() override = default;
 
-	bool tryRead(SDL_RWops &ops, const char *ext)
+	bool tryRead(SDL_RWops &ops, const char *ext) override
 	{
-		Sound_Sample *sample = Sound_NewSample(&ops, ext, 0, STREAM_BUF_SIZE);
+		Sound_Sample *sample = Sound_NewSample(&ops, ext, nullptr, STREAM_BUF_SIZE);
 
 		if (!sample)
 		{
@@ -208,7 +173,7 @@ struct SoundOpenHandler : FileSystem::OpenHandler
 		uint8_t sampleSize = formatSampleSize(sample->actual.format);
 		uint32_t sampleCount = decBytes / sampleSize;
 
-		buffer = new SoundBuffer;
+		buffer = std::make_shared<SoundBuffer>();
 		buffer->bytes = sampleSize * sampleCount;
 
 		ALenum alFormat = chooseALFormat(sampleSize, sample->actual.channels);
@@ -222,9 +187,9 @@ struct SoundOpenHandler : FileSystem::OpenHandler
 	}
 };
 
-SoundBuffer *SoundEmitter::allocateBuffer(const std::string &filename)
+std::shared_ptr<SoundBuffer> SoundEmitter::allocateBuffer(const std::string &filename)
 {
-	SoundBuffer *buffer = bufferHash.value(filename, 0);
+	auto buffer = bufferHash.value(filename, nullptr);
 
 	if (buffer)
 	{
@@ -249,7 +214,7 @@ SoundBuffer *SoundEmitter::allocateBuffer(const std::string &filename)
 			         filename.c_str(), Sound_GetError());
 			Debug() << buf;
 
-			return 0;
+			return nullptr;
 		}
 
 		buffer->key = filename;
@@ -264,8 +229,6 @@ SoundBuffer *SoundEmitter::allocateBuffer(const std::string &filename)
 			buffers.remove(last->link);
 
 			wouldBeBytes -= last->bytes;
-
-			SoundBuffer::deref(last);
 		}
 
 		bufferHash.insert(filename, buffer);

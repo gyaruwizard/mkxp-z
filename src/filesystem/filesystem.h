@@ -55,6 +55,8 @@ public:
 
 	struct OpenHandler
 	{
+        virtual ~OpenHandler() = default;
+
 		/* Try to read and interpret data provided from ops.
 		 * If data cannot be parsed, return false, otherwise true.
 		 * Can be called multiple times until a parseable file is found.
