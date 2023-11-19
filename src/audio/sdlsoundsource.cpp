@@ -121,10 +121,10 @@ struct SDLSoundSource : ALDataSource
 	}
 };
 
-ALDataSource *createSDLSource(SDL_RWops &ops,
-                              const char *extension,
-			                  uint32_t maxBufSize,
-			                  bool looped)
+std::unique_ptr<ALDataSource> createSDLSource(SDL_RWops &ops,
+                                              const char *extension,
+                                              uint32_t maxBufSize,
+                                              bool looped)
 {
-	return new SDLSoundSource(ops, extension, maxBufSize, looped);
+	return std::make_unique<SDLSoundSource>(ops, extension, maxBufSize, looped);
 }

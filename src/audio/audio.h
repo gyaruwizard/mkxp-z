@@ -22,6 +22,8 @@
 #ifndef AUDIO_H
 #define AUDIO_H
 
+#include <memory>
+
 /* Concerning the 'pos' parameter:
  *   RGSS3 actually doesn't specify a format for this,
  *   it's only implied that it is a numerical value
@@ -73,12 +75,12 @@ public:
 	void reset();
 
 private:
-	Audio(RGSSThreadData &rtData);
+	explicit Audio(RGSSThreadData &rtData);
 	~Audio();
 
 	friend struct SharedStatePrivate;
 
-	AudioPrivate *p;
+	std::unique_ptr<AudioPrivate> p;
 };
 
 #endif // AUDIO_H

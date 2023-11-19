@@ -85,7 +85,7 @@ DEF_GFX_PROP_B(Sprite, PatternTile)
 DEF_GFX_PROP_B(Sprite, Invert)
 
 RB_METHOD(spriteWidth) {
-    RB_UNUSED_PARAM;
+    RB_UNUSED_PARAM
     
     Sprite *s = getPrivateData<Sprite>(self);
     
@@ -96,7 +96,7 @@ RB_METHOD(spriteWidth) {
 }
 
 RB_METHOD(spriteHeight) {
-    RB_UNUSED_PARAM;
+    RB_UNUSED_PARAM
     
     Sprite *s = getPrivateData<Sprite>(self);
     
@@ -120,39 +120,39 @@ void spriteBindingInit() {
     
     _rb_define_method(klass, "initialize", spriteInitialize);
     
-    INIT_PROP_BIND(Sprite, Bitmap, "bitmap");
-    INIT_PROP_BIND(Sprite, SrcRect, "src_rect");
-    INIT_PROP_BIND(Sprite, X, "x");
-    INIT_PROP_BIND(Sprite, Y, "y");
-    INIT_PROP_BIND(Sprite, OX, "ox");
-    INIT_PROP_BIND(Sprite, OY, "oy");
-    INIT_PROP_BIND(Sprite, ZoomX, "zoom_x");
-    INIT_PROP_BIND(Sprite, ZoomY, "zoom_y");
-    INIT_PROP_BIND(Sprite, Angle, "angle");
-    INIT_PROP_BIND(Sprite, Mirror, "mirror");
-    INIT_PROP_BIND(Sprite, BushDepth, "bush_depth");
-    INIT_PROP_BIND(Sprite, Opacity, "opacity");
-    INIT_PROP_BIND(Sprite, BlendType, "blend_type");
-    INIT_PROP_BIND(Sprite, Color, "color");
-    INIT_PROP_BIND(Sprite, Tone, "tone");
+    INIT_PROP_BIND(Sprite, Bitmap, "bitmap")
+    INIT_PROP_BIND(Sprite, SrcRect, "src_rect")
+    INIT_PROP_BIND(Sprite, X, "x")
+    INIT_PROP_BIND(Sprite, Y, "y")
+    INIT_PROP_BIND(Sprite, OX, "ox")
+    INIT_PROP_BIND(Sprite, OY, "oy")
+    INIT_PROP_BIND(Sprite, ZoomX, "zoom_x")
+    INIT_PROP_BIND(Sprite, ZoomY, "zoom_y")
+    INIT_PROP_BIND(Sprite, Angle, "angle")
+    INIT_PROP_BIND(Sprite, Mirror, "mirror")
+    INIT_PROP_BIND(Sprite, BushDepth, "bush_depth")
+    INIT_PROP_BIND(Sprite, Opacity, "opacity")
+    INIT_PROP_BIND(Sprite, BlendType, "blend_type")
+    INIT_PROP_BIND(Sprite, Color, "color")
+    INIT_PROP_BIND(Sprite, Tone, "tone")
     
     _rb_define_method(klass, "width", spriteWidth);
     _rb_define_method(klass, "height", spriteHeight);
     
-    INIT_PROP_BIND(Sprite, BushOpacity, "bush_opacity");
+    INIT_PROP_BIND(Sprite, BushOpacity, "bush_opacity")
     
-    INIT_PROP_BIND(Sprite, Pattern, "pattern");
-    INIT_PROP_BIND(Sprite, PatternBlendType, "pattern_blend_type");
-    INIT_PROP_BIND(Sprite, PatternTile, "pattern_tile");
-    INIT_PROP_BIND(Sprite, PatternOpacity, "pattern_opacity");
-    INIT_PROP_BIND(Sprite, PatternScrollX, "pattern_scroll_x");
-    INIT_PROP_BIND(Sprite, PatternScrollY, "pattern_scroll_y");
-    INIT_PROP_BIND(Sprite, PatternZoomX, "pattern_zoom_x");
-    INIT_PROP_BIND(Sprite, PatternZoomY, "pattern_zoom_y");
-    INIT_PROP_BIND(Sprite, Invert, "invert");
+    INIT_PROP_BIND(Sprite, Pattern, "pattern")
+    INIT_PROP_BIND(Sprite, PatternBlendType, "pattern_blend_type")
+    INIT_PROP_BIND(Sprite, PatternTile, "pattern_tile")
+    INIT_PROP_BIND(Sprite, PatternOpacity, "pattern_opacity")
+    INIT_PROP_BIND(Sprite, PatternScrollX, "pattern_scroll_x")
+    INIT_PROP_BIND(Sprite, PatternScrollY, "pattern_scroll_y")
+    INIT_PROP_BIND(Sprite, PatternZoomX, "pattern_zoom_x")
+    INIT_PROP_BIND(Sprite, PatternZoomY, "pattern_zoom_y")
+    INIT_PROP_BIND(Sprite, Invert, "invert")
     
-    INIT_PROP_BIND(Sprite, WaveAmp, "wave_amp");
-    INIT_PROP_BIND(Sprite, WaveLength, "wave_length");
-    INIT_PROP_BIND(Sprite, WaveSpeed, "wave_speed");
-    INIT_PROP_BIND(Sprite, WavePhase, "wave_phase");
+    INIT_PROP_BIND(Sprite, WaveAmp, "wave_amp")
+    INIT_PROP_BIND(Sprite, WaveLength, "wave_length")
+    INIT_PROP_BIND(Sprite, WaveSpeed, "wave_speed")
+    INIT_PROP_BIND(Sprite, WavePhase, "wave_phase")
 }

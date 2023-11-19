@@ -88,7 +88,7 @@ void* httpGetInternal(void *req) {
 #endif
 
 RB_METHOD(httpGet) {
-    RB_UNUSED_PARAM;
+    RB_UNUSED_PARAM
     
     VALUE path, rheaders, redirect;
     rb_scan_args(argc, argv, "12", &path, &rheaders, &redirect);
@@ -131,7 +131,7 @@ void* httpPostInternal(void *args) {
 #endif
 
 RB_METHOD(httpPost) {
-    RB_UNUSED_PARAM;
+    RB_UNUSED_PARAM
     
     VALUE path, postDataHash, rheaders, redirect;
     rb_scan_args(argc, argv, "22", &path, &postDataHash, &rheaders, &redirect);
@@ -178,7 +178,7 @@ void* httpPostBodyInternal(void *args) {
 #endif
 
 RB_METHOD(httpPostBody) {
-    RB_UNUSED_PARAM;
+    RB_UNUSED_PARAM
     
     VALUE path, body, ctype, rheaders;
     rb_scan_args(argc, argv, "31", &path, &body, &ctype, &rheaders);
@@ -287,7 +287,7 @@ json5pp::value rb2json(VALUE v) {
 }
 
 RB_METHOD(httpJsonParse) {
-    RB_UNUSED_PARAM;
+    RB_UNUSED_PARAM
     
     VALUE jsonv;
     rb_scan_args(argc, argv, "1", &jsonv);
@@ -305,7 +305,7 @@ RB_METHOD(httpJsonParse) {
 }
 
 RB_METHOD(httpJsonStringify) {
-    RB_UNUSED_PARAM;
+    RB_UNUSED_PARAM
     
     VALUE obj;
     rb_scan_args(argc, argv, "1", &obj);

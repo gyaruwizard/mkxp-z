@@ -31,7 +31,7 @@
 #endif
 
 RB_METHOD(graphicsDelta) {
-    RB_UNUSED_PARAM;
+    RB_UNUSED_PARAM
     GFX_LOCK;
     VALUE ret = rb_float_new(shState->graphics().getDelta());
     GFX_UNLOCK;
@@ -40,7 +40,7 @@ RB_METHOD(graphicsDelta) {
 
 RB_METHOD(graphicsUpdate)
 {
-    RB_UNUSED_PARAM;
+    RB_UNUSED_PARAM
 #if RAPI_MAJOR >= 2
     rb_thread_call_without_gvl([](void*) -> void* {
         GFX_LOCK;
@@ -56,7 +56,7 @@ RB_METHOD(graphicsUpdate)
 
 RB_METHOD(graphicsAverageFrameRate)
 {
-    RB_UNUSED_PARAM;
+    RB_UNUSED_PARAM
     GFX_LOCK;
     VALUE ret = rb_float_new(shState->graphics().averageFrameRate());
     GFX_UNLOCK;
@@ -65,7 +65,7 @@ RB_METHOD(graphicsAverageFrameRate)
 
 RB_METHOD(graphicsFreeze)
 {
-    RB_UNUSED_PARAM;
+    RB_UNUSED_PARAM
     
     GFX_LOCK;
     shState->graphics().freeze();
@@ -76,7 +76,7 @@ RB_METHOD(graphicsFreeze)
 
 RB_METHOD(graphicsTransition)
 {
-    RB_UNUSED_PARAM;
+    RB_UNUSED_PARAM
     
     int duration = 8;
     const char *filename = "";
@@ -91,7 +91,7 @@ RB_METHOD(graphicsTransition)
 
 RB_METHOD(graphicsFrameReset)
 {
-    RB_UNUSED_PARAM;
+    RB_UNUSED_PARAM
     
     GFX_LOCK;
     shState->graphics().frameReset();
@@ -103,12 +103,12 @@ RB_METHOD(graphicsFrameReset)
 #define DEF_GRA_PROP_I(PropName) \
 RB_METHOD(graphics##Get##PropName) \
 { \
-RB_UNUSED_PARAM; \
+RB_UNUSED_PARAM \
 return rb_fix_new(shState->graphics().get##PropName()); \
 } \
 RB_METHOD(graphics##Set##PropName) \
 { \
-RB_UNUSED_PARAM; \
+RB_UNUSED_PARAM \
 int value; \
 rb_get_args(argc, argv, "i", &value RB_ARG_END); \
 GFX_LOCK; \
@@ -120,12 +120,12 @@ return rb_fix_new(value); \
 #define DEF_GRA_PROP_B(PropName) \
 RB_METHOD(graphics##Get##PropName) \
 { \
-RB_UNUSED_PARAM; \
+RB_UNUSED_PARAM \
 return rb_bool_new(shState->graphics().get##PropName()); \
 } \
 RB_METHOD(graphics##Set##PropName) \
 { \
-RB_UNUSED_PARAM; \
+RB_UNUSED_PARAM \
 bool value; \
 rb_get_args(argc, argv, "b", &value RB_ARG_END); \
 GFX_LOCK; \
@@ -137,12 +137,12 @@ return rb_bool_new(value); \
 #define DEF_GRA_PROP_F(PropName) \
 RB_METHOD(graphics##Get##PropName) \
 { \
-RB_UNUSED_PARAM; \
+RB_UNUSED_PARAM \
 return rb_float_new(shState->graphics().get##PropName()); \
 } \
 RB_METHOD(graphics##Set##PropName) \
 { \
-RB_UNUSED_PARAM; \
+RB_UNUSED_PARAM \
 double value; \
 rb_get_args(argc, argv, "f", &value RB_ARG_END); \
 GFX_LOCK; \
@@ -153,35 +153,35 @@ return rb_float_new(value); \
 
 RB_METHOD(graphicsWidth)
 {
-    RB_UNUSED_PARAM;
+    RB_UNUSED_PARAM
     
     return rb_fix_new(shState->graphics().width());
 }
 
 RB_METHOD(graphicsHeight)
 {
-    RB_UNUSED_PARAM;
+    RB_UNUSED_PARAM
     
     return rb_fix_new(shState->graphics().height());
 }
 
 RB_METHOD(graphicsDisplayWidth)
 {
-    RB_UNUSED_PARAM;
+    RB_UNUSED_PARAM
     
     return rb_fix_new(shState->graphics().displayWidth());
 }
 
 RB_METHOD(graphicsDisplayHeight)
 {
-    RB_UNUSED_PARAM;
+    RB_UNUSED_PARAM
     
     return rb_fix_new(shState->graphics().displayHeight());
 }
 
 RB_METHOD(graphicsWait)
 {
-    RB_UNUSED_PARAM;
+    RB_UNUSED_PARAM
     
     int duration;
     rb_get_args(argc, argv, "i", &duration RB_ARG_END);
@@ -200,7 +200,7 @@ RB_METHOD(graphicsWait)
 
 RB_METHOD(graphicsFadeout)
 {
-    RB_UNUSED_PARAM;
+    RB_UNUSED_PARAM
     
     int duration;
     rb_get_args(argc, argv, "i", &duration RB_ARG_END);
@@ -214,7 +214,7 @@ RB_METHOD(graphicsFadeout)
 
 RB_METHOD(graphicsFadein)
 {
-    RB_UNUSED_PARAM;
+    RB_UNUSED_PARAM
     
     int duration;
     rb_get_args(argc, argv, "i", &duration RB_ARG_END);
@@ -230,7 +230,7 @@ void bitmapInitProps(Bitmap *b, VALUE self);
 
 RB_METHOD(graphicsSnapToBitmap)
 {
-    RB_UNUSED_PARAM;
+    RB_UNUSED_PARAM
     
     Bitmap *result = 0;
     
@@ -244,7 +244,7 @@ RB_METHOD(graphicsSnapToBitmap)
 
 RB_METHOD(graphicsResizeScreen)
 {
-    RB_UNUSED_PARAM;
+    RB_UNUSED_PARAM
     
     int width, height;
     rb_get_args(argc, argv, "ii", &width, &height RB_ARG_END);
@@ -258,7 +258,7 @@ RB_METHOD(graphicsResizeScreen)
 
 RB_METHOD(graphicsResizeWindow)
 {
-    RB_UNUSED_PARAM;
+    RB_UNUSED_PARAM
     
     int width, height;
     bool center = false;
@@ -274,7 +274,7 @@ RB_METHOD(graphicsResizeWindow)
 
 RB_METHOD(graphicsReset)
 {
-    RB_UNUSED_PARAM;
+    RB_UNUSED_PARAM
     
     GFX_LOCK;
     shState->graphics().reset();
@@ -285,7 +285,7 @@ RB_METHOD(graphicsReset)
 
 RB_METHOD(graphicsCenter)
 {
-    RB_UNUSED_PARAM;
+    RB_UNUSED_PARAM
     
     shState->graphics().center();
     return Qnil;
@@ -311,7 +311,7 @@ void *playMovieInternal(void *args) {
 
 RB_METHOD(graphicsPlayMovie)
 {
-    RB_UNUSED_PARAM;
+    RB_UNUSED_PARAM
     
     VALUE filename, volumeArg, skippable;
     rb_scan_args(argc, argv, "12", &filename, &volumeArg, &skippable);
@@ -337,12 +337,12 @@ RB_METHOD(graphicsPlayMovie)
 
 void graphicsScreenshotInternal(const char *filename)
 {
-    GFX_GUARD_EXC(shState->graphics().screenshot(filename););
+    GFX_GUARD_EXC(shState->graphics().screenshot(filename);)
 }
 
 RB_METHOD(graphicsScreenshot)
 {
-    RB_UNUSED_PARAM;
+    RB_UNUSED_PARAM
 
     VALUE filename;
     rb_scan_args(argc, argv, "1", &filename);

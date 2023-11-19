@@ -323,29 +323,29 @@ static void printP(int argc, VALUE *argv, const char *convMethod,
 
 
 RB_METHOD(mriPrint) {
-    RB_UNUSED_PARAM;
-
+    RB_UNUSED_PARAM
+    
     printP(argc, argv, "to_s", "");
 
     return Qnil;
 }
 
 RB_METHOD(mriP) {
-    RB_UNUSED_PARAM;
-
+    RB_UNUSED_PARAM
+    
     printP(argc, argv, "inspect", "\n");
 
     return Qnil;
 }
 
 RB_METHOD(mkxpDelta) {
-    RB_UNUSED_PARAM;
+    RB_UNUSED_PARAM
     return rb_float_new(shState->runTime());
 }
 
 RB_METHOD(mkxpDataDirectory) {
-    RB_UNUSED_PARAM;
-
+    RB_UNUSED_PARAM
+    
     const std::string &path = shState->config().customDataPath;
     const char *s = path.empty() ? "." : path.c_str();
 
@@ -356,8 +356,8 @@ RB_METHOD(mkxpDataDirectory) {
 }
 
 RB_METHOD(mkxpSetTitle) {
-    RB_UNUSED_PARAM;
-
+    RB_UNUSED_PARAM
+    
     VALUE s;
     rb_scan_args(argc, argv, "1", &s);
     SafeStringValue(s);
@@ -367,16 +367,16 @@ RB_METHOD(mkxpSetTitle) {
 }
 
 RB_METHOD(mkxpGetTitle) {
-    RB_UNUSED_PARAM;
-
+    RB_UNUSED_PARAM
+    
     rb_check_argc(argc, 0);
 
     return rb_utf8_str_new_cstr(SDL_GetWindowTitle(shState->sdlWindow()));
 }
 
 RB_METHOD(mkxpDesensitize) {
-    RB_UNUSED_PARAM;
-
+    RB_UNUSED_PARAM
+    
     VALUE filename;
     rb_scan_args(argc, argv, "1", &filename);
     SafeStringValue(filename);
@@ -386,8 +386,8 @@ RB_METHOD(mkxpDesensitize) {
 }
 
 RB_METHOD(mkxpPuts) {
-    RB_UNUSED_PARAM;
-
+    RB_UNUSED_PARAM
+    
     const char *str;
     rb_get_args(argc, argv, "z", &str RB_ARG_END);
 
@@ -397,8 +397,8 @@ RB_METHOD(mkxpPuts) {
 }
 
 RB_METHOD(mkxpPlatform) {
-    RB_UNUSED_PARAM;
-
+    RB_UNUSED_PARAM
+    
 #if MKXPZ_PLATFORM == MKXPZ_PLATFORM_MACOS
     std::string platform("macOS");
 
@@ -427,58 +427,58 @@ RB_METHOD(mkxpPlatform) {
 }
 
 RB_METHOD(mkxpIsMacHost) {
-    RB_UNUSED_PARAM;
-
+    RB_UNUSED_PARAM
+    
     return rb_bool_new(MKXPZ_PLATFORM == MKXPZ_PLATFORM_MACOS);
 }
 
 RB_METHOD(mkxpIsUsingRosetta) {
-    RB_UNUSED_PARAM;
-
+    RB_UNUSED_PARAM
+    
     return rb_bool_new(mkxp_sys::isRosetta());
 }
 
 RB_METHOD(mkxpIsLinuxHost) {
-    RB_UNUSED_PARAM;
-
+    RB_UNUSED_PARAM
+    
     return rb_bool_new(MKXPZ_PLATFORM == MKXPZ_PLATFORM_LINUX);
 }
 
 RB_METHOD(mkxpIsWindowsHost) {
-    RB_UNUSED_PARAM;
-
+    RB_UNUSED_PARAM
+    
     return rb_bool_new(MKXPZ_PLATFORM == MKXPZ_PLATFORM_WINDOWS);
 }
 
 RB_METHOD(mkxpIsUsingWine) {
-    RB_UNUSED_PARAM;
+    RB_UNUSED_PARAM
     return rb_bool_new(mkxp_sys::isWine());
 }
 
 RB_METHOD(mkxpIsReallyMacHost) {
-    RB_UNUSED_PARAM;
+    RB_UNUSED_PARAM
     return rb_bool_new(mkxp_sys::getRealHostType() == mkxp_sys::WineHostType::Mac);
 }
 
 RB_METHOD(mkxpIsReallyLinuxHost) {
-    RB_UNUSED_PARAM;
+    RB_UNUSED_PARAM
     return rb_bool_new(mkxp_sys::getRealHostType() == mkxp_sys::WineHostType::Linux);
 }
 
 RB_METHOD(mkxpIsReallyWindowsHost) {
-    RB_UNUSED_PARAM;
+    RB_UNUSED_PARAM
     return rb_bool_new(mkxp_sys::getRealHostType() == mkxp_sys::WineHostType::Windows);
 }
 
 RB_METHOD(mkxpUserLanguage) {
-    RB_UNUSED_PARAM;
-
+    RB_UNUSED_PARAM
+    
     return rb_utf8_str_new_cstr(mkxp_sys::getSystemLanguage().c_str());
 }
 
 RB_METHOD(mkxpUserName) {
-    RB_UNUSED_PARAM;
-
+    RB_UNUSED_PARAM
+    
     // Using the Windows API isn't working with usernames that involve Unicode
     // characters for some dumb reason
 #ifdef __WIN32__
@@ -490,14 +490,14 @@ RB_METHOD(mkxpUserName) {
 }
 
 RB_METHOD(mkxpGameTitle) {
-    RB_UNUSED_PARAM;
-
+    RB_UNUSED_PARAM
+    
     return rb_utf8_str_new_cstr(shState->config().game.title.c_str());
 }
 
 RB_METHOD(mkxpPowerState) {
-    RB_UNUSED_PARAM;
-
+    RB_UNUSED_PARAM
+    
     int secs, pct;
     SDL_PowerState ps = SDL_GetPowerInfo(&secs, &pct);
 
@@ -516,35 +516,35 @@ RB_METHOD(mkxpPowerState) {
 }
 
 RB_METHOD(mkxpSettingsMenu) {
-    RB_UNUSED_PARAM;
-
+    RB_UNUSED_PARAM
+    
     shState->eThread().requestSettingsMenu();
 
     return Qnil;
 }
 
 RB_METHOD(mkxpCpuCount) {
-    RB_UNUSED_PARAM;
-
+    RB_UNUSED_PARAM
+    
     return INT2NUM(SDL_GetCPUCount());
 }
 
 RB_METHOD(mkxpSystemMemory) {
-    RB_UNUSED_PARAM;
-
+    RB_UNUSED_PARAM
+    
     return INT2NUM(SDL_GetSystemRAM());
 }
 
 RB_METHOD(mkxpReloadPathCache) {
-    RB_UNUSED_PARAM;
-
+    RB_UNUSED_PARAM
+    
     shState->fileSystem().reloadPathCache();
     return Qnil;
 }
 
 RB_METHOD(mkxpAddPath) {
-    RB_UNUSED_PARAM;
-
+    RB_UNUSED_PARAM
+    
     VALUE path, mountpoint, reload;
     rb_scan_args(argc, argv, "12", &path, &mountpoint, &reload);
     SafeStringValue(path);
@@ -565,8 +565,8 @@ RB_METHOD(mkxpAddPath) {
 }
 
 RB_METHOD(mkxpRemovePath) {
-    RB_UNUSED_PARAM;
-
+    RB_UNUSED_PARAM
+    
     VALUE path, reload;
     rb_scan_args(argc, argv, "11", &path, &reload);
     SafeStringValue(path);
@@ -584,8 +584,8 @@ RB_METHOD(mkxpRemovePath) {
 }
 
 RB_METHOD(mkxpFileExists) {
-    RB_UNUSED_PARAM;
-
+    RB_UNUSED_PARAM
+    
     VALUE path;
     rb_scan_args(argc, argv, "1", &path);
     SafeStringValue(path);
@@ -596,8 +596,8 @@ RB_METHOD(mkxpFileExists) {
 }
 
 RB_METHOD(mkxpSetDefaultFontFamily) {
-    RB_UNUSED_PARAM;
-
+    RB_UNUSED_PARAM
+    
     VALUE familyV;
     rb_scan_args(argc, argv, "1", &familyV);
     SafeStringValue(familyV);
@@ -609,8 +609,8 @@ RB_METHOD(mkxpSetDefaultFontFamily) {
 }
 
 RB_METHOD(mkxpStringToUTF8) {
-    RB_UNUSED_PARAM;
-
+    RB_UNUSED_PARAM
+    
     rb_check_argc(argc, 0);
 
     std::string ret(RSTRING_PTR(self), RSTRING_LEN(self));
@@ -620,8 +620,8 @@ RB_METHOD(mkxpStringToUTF8) {
 }
 
 RB_METHOD(mkxpStringToUTF8Bang) {
-    RB_UNUSED_PARAM;
-
+    RB_UNUSED_PARAM
+    
     rb_check_argc(argc, 0);
 
     std::string ret(RSTRING_PTR(self), RSTRING_LEN(self));
@@ -649,8 +649,8 @@ RB_METHOD(mkxpStringToUTF8Bang) {
 #endif
 
 RB_METHOD(mkxpLaunch) {
-    RB_UNUSED_PARAM;
-
+    RB_UNUSED_PARAM
+    
     VALUE cmdname, args;
 
     rb_scan_args(argc, argv, "11", &cmdname, &args);
@@ -712,8 +712,8 @@ void saveUserSettings(json5pp::value &settings) {
 }
 
 RB_METHOD(mkxpGetJSONSetting) {
-    RB_UNUSED_PARAM;
-
+    RB_UNUSED_PARAM
+    
     VALUE sname;
     rb_scan_args(argc, argv, "1", &sname);
     SafeStringValue(sname);
@@ -730,8 +730,8 @@ RB_METHOD(mkxpGetJSONSetting) {
 }
 
 RB_METHOD(mkxpSetJSONSetting) {
-    RB_UNUSED_PARAM;
-
+    RB_UNUSED_PARAM
+    
     VALUE sname, svalue;
     rb_scan_args(argc, argv, "2", &sname, &svalue);
     SafeStringValue(sname);
@@ -745,8 +745,8 @@ RB_METHOD(mkxpSetJSONSetting) {
 }
 
 RB_METHOD(mkxpGetAllJSONSettings) {
-    RB_UNUSED_PARAM;
-
+    RB_UNUSED_PARAM
+    
     return json2rb(shState->config().raw);
 }
 
@@ -772,8 +772,8 @@ static void processReset() {
 }
 
 RB_METHOD(mriRgssMain) {
-    RB_UNUSED_PARAM;
-
+    RB_UNUSED_PARAM
+    
     while (true) {
         VALUE exc = Qnil;
 #if RAPI_FULL < 270
@@ -798,8 +798,8 @@ RB_METHOD(mriRgssMain) {
 }
 
 RB_METHOD(mriRgssStop) {
-    RB_UNUSED_PARAM;
-
+    RB_UNUSED_PARAM
+    
     while (true)
         shState->graphics().update();
 
@@ -807,8 +807,8 @@ RB_METHOD(mriRgssStop) {
 }
 
 RB_METHOD(_kernelCaller) {
-    RB_UNUSED_PARAM;
-
+    RB_UNUSED_PARAM
+    
     VALUE trace =
             rb_funcall2(rb_mKernel, rb_intern("_mkxp_kernel_caller_alias"), 0, 0);
 

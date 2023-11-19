@@ -27,6 +27,9 @@
 #include <algorithm>
 #include <vector>
 
+// Use this to shut up analyzers about the usage of void*
+using OpaquePtr = void*;
+
 static inline int
 wrapRange(int value, int min, int max)
 {

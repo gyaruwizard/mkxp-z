@@ -34,7 +34,7 @@
 template<class C>
 RB_METHOD(viewportElementGetViewport)
 {
-	RB_UNUSED_PARAM;
+	RB_UNUSED_PARAM
 
 	checkDisposed<C>(self);
 
@@ -44,7 +44,7 @@ RB_METHOD(viewportElementGetViewport)
 template<class C>
 RB_METHOD(viewportElementSetViewport)
 {
-	RB_UNUSED_PARAM;
+	RB_UNUSED_PARAM
 
 	ViewportElement *ve = getPrivateData<C>(self);
 
@@ -62,7 +62,7 @@ RB_METHOD(viewportElementSetViewport)
         disposableAddChild(viewportObj, self);
     }
 
-	GFX_GUARD_EXC( ve->setViewport(viewport); );
+	GFX_GUARD_EXC( ve->setViewport(viewport); )
 
 	rb_iv_set(self, "viewport", viewportObj);
 
@@ -89,7 +89,7 @@ viewportElementInitialize(int argc, VALUE *argv, VALUE self)
 
     GFX_LOCK;
 	/* Construct object */
-	C *ve = new C(viewport);
+    auto *ve = initInstance<C>(viewport);
 
     
 	/* Set property objects */
@@ -106,10 +106,7 @@ viewportElementBindingInit(VALUE klass)
 
 	_rb_define_method(klass, "viewport", viewportElementGetViewport<C>);
 
-    //if (rgssVer >= 2)
-	//{
 	_rb_define_method(klass, "viewport=", viewportElementSetViewport<C>);
-	//}
 }
 
 #endif // VIEWPORTELEMENTBINDING_H

@@ -128,7 +128,7 @@ RB_METHOD(fileIntRead) {
 }
 
 RB_METHOD(fileIntClose) {
-    RB_UNUSED_PARAM;
+    RB_UNUSED_PARAM
     
     SDL_RWops *ops = getPrivateData<SDL_RWops>(self);
     SDL_RWclose(ops);
@@ -137,7 +137,7 @@ RB_METHOD(fileIntClose) {
 }
 
 RB_METHOD(fileIntGetByte) {
-    RB_UNUSED_PARAM;
+    RB_UNUSED_PARAM
     
     SDL_RWops *ops = getPrivateData<SDL_RWops>(self);
     
@@ -148,7 +148,7 @@ RB_METHOD(fileIntGetByte) {
 }
 
 RB_METHOD(fileIntBinmode) {
-    RB_UNUSED_PARAM;
+    RB_UNUSED_PARAM
     
     return Qnil;
 }
@@ -197,7 +197,7 @@ RB_METHOD(kernelAddSearchPath) {
 }
 
 RB_METHOD(kernelLoadData) {
-    RB_UNUSED_PARAM;
+    RB_UNUSED_PARAM
     
     VALUE filename;
     VALUE raw;
@@ -210,7 +210,7 @@ RB_METHOD(kernelLoadData) {
 }
 
 RB_METHOD(kernelSaveData) {
-    RB_UNUSED_PARAM;
+    RB_UNUSED_PARAM
     
     VALUE obj;
     VALUE filename;
@@ -251,7 +251,7 @@ static VALUE customProc(VALUE arg, VALUE proc) {
 #endif
 
 RB_METHOD(_marshalLoad) {
-    RB_UNUSED_PARAM;
+    RB_UNUSED_PARAM
 #if RAPI_FULL < 270
     VALUE port, proc = Qnil;
     rb_get_args(argc, argv, "o|o", &port, &proc RB_ARG_END);

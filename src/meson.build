@@ -174,6 +174,7 @@ main_source = files(
 
     'filesystem/filesystem.cpp',
     'filesystem/filesystemImpl.cpp',
+    'filesystem/physresources.cpp',
 
     'input/input.cpp',
     'input/keybindings.cpp',

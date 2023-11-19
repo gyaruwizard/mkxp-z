@@ -21,11 +21,13 @@
 
 #include "rgssad.h"
 #include "boost-hash.h"
+#include "util.h"
 
 #include <stdint.h>
 #include <string.h>
 
 #include <string>
+#include <memory>
 
 /* Equivalent Linear Congruential Generator (LCG) constants for iteration 2^n
  * all the way up to 2^32/4 (the largest dword offset possible in
@@ -53,6 +55,14 @@ constexpr static uint32_t LCG_TABLE[30][2] = {
     {0x80000001, 0xc0000000}, {0x00000001, 0x80000000},
 };
 
+using PHYSFS_Io_Ptr = std::shared_ptr<PHYSFS_Io>;
+
+PHYSFS_Io_Ptr createPhysfsIoPtr(PHYSFS_Io* io) {
+    return PHYSFS_Io_Ptr(io, [](PHYSFS_Io *ptr) {
+        ptr->destroy(ptr);
+    });
+}
+
 struct RGSS_entryData
 {
 	int64_t offset;
@@ -64,21 +74,17 @@ struct RGSS_entryHandle
 {
 	const RGSS_entryData data;
 	uint32_t currentMagic;
-	uint64_t currentOffset;
-	PHYSFS_Io *io;
+	uint64_t currentOffset = 0;
+    PHYSFS_Io_Ptr io = createPhysfsIoPtr(nullptr);
 
 	RGSS_entryHandle(const RGSS_entryData &data, PHYSFS_Io *archIo)
 	    : data(data),
 	      currentMagic(data.startMagic),
-	      currentOffset(0)
-	{
-		io = archIo->duplicate(archIo);
+          io(createPhysfsIoPtr(archIo->duplicate(archIo)))
+    {
 	}
 
-	~RGSS_entryHandle()
-	{
-		io->destroy(io);
-	}
+
 };
 
 struct RGSS_archiveData
@@ -92,6 +98,7 @@ struct RGSS_archiveData
 	/* Maps: directory path,
 	 * to:   list of contained entries */
 	BoostHash<std::string, BoostSet<std::string> > dirHash;
+
 };
 
 static bool
@@ -143,11 +150,11 @@ advanceMagicN(uint32_t &magic, uint32_t n) {
 }
 
 static PHYSFS_sint64
-RGSS_ioRead(PHYSFS_Io *self, void *buffer, PHYSFS_uint64 len)
+RGSS_ioRead(PHYSFS_Io *self, OpaquePtr buffer, PHYSFS_uint64 len)
 {
-	RGSS_entryHandle *entry = static_cast<RGSS_entryHandle*>(self->opaque);
+    auto entry = static_cast<RGSS_entryHandle*>(self->opaque);
 
-	PHYSFS_Io *io = entry->io;
+	PHYSFS_Io *io = entry->io.get();
 
 	uint64_t toRead = std::min<uint64_t>(entry->data.size - entry->currentOffset, len);
 	uint64_t offs = entry->currentOffset;
@@ -264,7 +271,7 @@ RGSS_ioSeek(PHYSFS_Io *self, PHYSFS_uint64 offset)
 	advanceMagicN(entry->currentMagic, (uint32_t) dwordsSought);
 
 	entry->currentOffset = offset;
-	entry->io->seek(entry->io, entry->data.offset + entry->currentOffset);
+	entry->io->seek(entry->io.get(), entry->data.offset + entry->currentOffset);
 
 	return 1;
 }
@@ -289,11 +296,11 @@ static PHYSFS_Io*
 RGSS_ioDuplicate(PHYSFS_Io *self)
 {
 	const RGSS_entryHandle *entry = static_cast<RGSS_entryHandle*>(self->opaque);
-	RGSS_entryHandle *entryDup = new RGSS_entryHandle(*entry);
+	auto entryDup = std::make_unique<RGSS_entryHandle>(*entry);
 
-	PHYSFS_Io *dup = PHYSFS_ALLOC(PHYSFS_Io);
+	auto dup = PHYSFS_ALLOC(PHYSFS_Io);
 	*dup = *self;
-	dup->opaque = entryDup;
+	dup->opaque = entryDup.release();
 
 	return dup;
 }
@@ -301,9 +308,9 @@ RGSS_ioDuplicate(PHYSFS_Io *self)
 static void
 RGSS_ioDestroy(PHYSFS_Io *self)
 {
-	RGSS_entryHandle *entry = static_cast<RGSS_entryHandle*>(self->opaque);
-
-	delete entry;
+    // Place the object into a managed container again after previously releasing it
+	auto entry = static_cast<RGSS_entryHandle*>(self->opaque);
+    std::unique_ptr<RGSS_entryHandle> disposer(entry);
 
 	PHYSFS_getAllocator()->Free(self);
 }
@@ -311,14 +318,14 @@ RGSS_ioDestroy(PHYSFS_Io *self)
 static const PHYSFS_Io RGSS_IoTemplate =
 {
     0, /* version */
-    0, /* opaque */
+    nullptr, /* opaque */
     RGSS_ioRead,
-    0, /* write */
+    nullptr, /* write */
     RGSS_ioSeek,
     RGSS_ioTell,
     RGSS_ioLength,
     RGSS_ioDuplicate,
-    0, /* flush */
+    nullptr, /* flush */
     RGSS_ioDestroy
 };
 
@@ -375,19 +382,19 @@ verifyHeader(PHYSFS_Io *io, char version)
 	return true;
 }
 
-static void*
+static OpaquePtr
 RGSS_openArchive(PHYSFS_Io *io, const char *, int forWrite, int *claimed)
 {
 	if (forWrite)
-		return NULL;
+		return nullptr;
 
 	/* Version 1 */
 	if (!verifyHeader(io, 1))
-		return NULL;
+		return nullptr;
 	else
 		*claimed = 1;
 
-	RGSS_archiveData *data = new RGSS_archiveData;
+	auto data = std::make_unique<RGSS_archiveData>();
 	data->archiveIo = io;
 
 	uint32_t magic = RGSS_MAGIC;
@@ -428,18 +435,18 @@ RGSS_openArchive(PHYSFS_Io *io, const char *, int forWrite, int *claimed)
 		entry.startMagic = magic;
 
 		data->entryHash.insert(nameBuf, entry);
-		processDirectories(data, topLevel, nameBuf, nameLen);
+		processDirectories(data.get(), topLevel, nameBuf, nameLen);
 
 		io->seek(io, entry.offset + entry.size);
 	}
 
-	return data;
+	return data.release();
 }
 
 static PHYSFS_EnumerateCallbackResult
-RGSS_enumerateFiles(void *opaque, const char *dirname,
+RGSS_enumerateFiles(OpaquePtr opaque, const char *dirname,
                     PHYSFS_EnumerateCallback cb,
-                    const char *origdir, void *callbackdata)
+                    const char *origdir, OpaquePtr callbackdata)
 {
 	RGSS_archiveData *data = static_cast<RGSS_archiveData*>(opaque);
 
@@ -458,28 +465,27 @@ RGSS_enumerateFiles(void *opaque, const char *dirname,
 }
 
 static PHYSFS_Io*
-RGSS_openRead(void *opaque, const char *filename)
+RGSS_openRead(OpaquePtr opaque, const char *filename)
 {
-	RGSS_archiveData *data = static_cast<RGSS_archiveData*>(opaque);
+    auto data = static_cast<RGSS_archiveData*>(opaque);
 
 	if (!data->entryHash.contains(filename))
-		return 0;
+		return nullptr;
 
-	RGSS_entryHandle *entry =
-	        new RGSS_entryHandle(data->entryHash[filename], data->archiveIo);
+	auto entry = std::make_unique<RGSS_entryHandle>(data->entryHash[filename], data->archiveIo);
 
-	PHYSFS_Io *io = PHYSFS_ALLOC(PHYSFS_Io);
+    auto *io = PHYSFS_ALLOC(PHYSFS_Io);
 
 	*io = RGSS_IoTemplate;
-	io->opaque = entry;
+	io->opaque = entry.release();
 
 	return io;
 }
 
 static int
-RGSS_stat(void *opaque, const char *filename, PHYSFS_Stat *stat)
+RGSS_stat(OpaquePtr opaque, const char *filename, PHYSFS_Stat *stat)
 {
-	RGSS_archiveData *data = static_cast<RGSS_archiveData*>(opaque);
+    auto data = static_cast<RGSS_archiveData*>(opaque);
 
 	bool hasFile = data->entryHash.contains(filename);
 	bool hasDir  = data->dirHash.contains(filename);
@@ -512,21 +518,21 @@ RGSS_stat(void *opaque, const char *filename, PHYSFS_Stat *stat)
 }
 
 static void
-RGSS_closeArchive(void *opaque)
+RGSS_closeArchive(OpaquePtr opaque)
 {
-	RGSS_archiveData *data = static_cast<RGSS_archiveData*>(opaque);
-
-	delete data;
+    // Return the unmanaged memory into a smart pointer
+    auto data = static_cast<RGSS_archiveData*>(opaque);
+    std::unique_ptr<RGSS_archiveData> managed(data);
 }
 
 static PHYSFS_Io*
-RGSS_noop1(void*, const char*)
+RGSS_noop1(const OpaquePtr, const char*)
 {
-	return 0;
+	return nullptr;
 }
 
 static int
-RGSS_noop2(void*, const char*)
+RGSS_noop2(const OpaquePtr, const char*)
 {
 	return 0;
 }
@@ -584,26 +590,26 @@ readUint32AndXor(PHYSFS_Io *io, uint32_t &result, uint32_t key)
 	return true;
 }
 
-static void*
+static OpaquePtr
 RGSS3_openArchive(PHYSFS_Io *io, const char *, int forWrite, int *claimed)
 {
 	if (forWrite)
-		return NULL;
+		return nullptr;
 
 	/* Version 3 */
 	if (!verifyHeader(io, 3))
-		return NULL;
+		return nullptr;
 	else
 		*claimed = 1;
 
 	uint32_t baseMagic;
 
 	if (!readUint32(io, baseMagic))
-		return NULL;
+		return nullptr;
 
 	baseMagic = (baseMagic * 9) + 3;
 
-	RGSS_archiveData *data = new RGSS_archiveData;
+	auto data = std::make_unique<RGSS_archiveData>();
 	data->archiveIo = io;
 
 	/* Top level entry list */
@@ -650,16 +656,16 @@ RGSS3_openArchive(PHYSFS_Io *io, const char *, int forWrite, int *claimed)
 		entry.startMagic = magic;
 
 		data->entryHash.insert(nameBuf, entry);
-		processDirectories(data, topLevel, nameBuf, nameLen);
+		processDirectories(data.get(), topLevel, nameBuf, nameLen);
 
 		continue;
 
 	error:
-		delete data;
-		return NULL;
+		return nullptr;
 	}
 
-	return data;
+    // Release the ownership and return
+	return data.release();
 }
 
 const PHYSFS_Archiver RGSS3_Archiver =

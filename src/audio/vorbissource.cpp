@@ -282,8 +282,8 @@ struct VorbisSource : ALDataSource
 	}
 };
 
-ALDataSource *createVorbisSource(SDL_RWops &ops,
-                                 bool looped)
+std::unique_ptr<ALDataSource> createVorbisSource(SDL_RWops &ops,
+                                                 bool looped)
 {
-	return new VorbisSource(ops, looped);
+	return std::make_unique<VorbisSource>(ops, looped);
 }

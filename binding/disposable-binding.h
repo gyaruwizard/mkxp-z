@@ -123,7 +123,7 @@ disposableDisposeChildren(VALUE disp)
 template<class C>
 RB_METHOD(disposableDispose)
 {
-	RB_UNUSED_PARAM;
+	RB_UNUSED_PARAM
 
 	C *d = getPrivateData<C>(self);
 
@@ -147,7 +147,7 @@ RB_METHOD(disposableDispose)
 template<class C>
 RB_METHOD(disposableIsDisposed)
 {
-	RB_UNUSED_PARAM;
+	RB_UNUSED_PARAM
 
 	C *d = getPrivateData<C>(self);
 

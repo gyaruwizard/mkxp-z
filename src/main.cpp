@@ -132,37 +132,29 @@ std::unique_ptr<ALCcontext, void (*)(ALCcontext *)> startRgssThread(RGSSThreadDa
     RgssThreadManager::getInstance().lockRgssThread();
 #else
     int rgssThreadFun(void *userdata) {
-        RGSSThreadData *threadData = static_cast<RGSSThreadData *>(userdata);
+        auto *threadData = static_cast<RGSSThreadData *>(userdata);
 #endif
 
 #ifdef MKXPZ_INIT_GL_LATER
-    threadData->glContext =
-            initGL(threadData->window, threadData->config, threadData);
-    if (!threadData->glContext) {
+  threadData->glContext.reset(initGL(threadData->window, threadData->config, threadData));
+  if (!threadData->glContext) {
 #ifdef MKXPZ_RUBY_GEM
-        RgssThreadManager::getInstance().unlockRgssThread();
-        throw std::system_error(std::error_code(), "RGSS failed to initialize!");
+      RgssThreadManager::getInstance().unlockRgssThread();
+      throw std::system_error(std::error_code(), "RGSS failed to initialize!");
 #else
-        return 0;
+      return 0;
 #endif
-    }
+  }
 #else
-    SDL_GL_MakeCurrent(threadData->window, threadData->glContext);
+  SDL_GL_MakeCurrent(threadData->window, threadData->glContext.get());
 #endif
 
   /* Setup AL context */
-  std::unique_ptr<ALCcontext, void (*)(ALCcontext *)> alcCtx(alcCreateContext(threadData->alcDev, 0),
-                                                             alcDestroyContext);
+  std::unique_ptr<ALCcontext, void (*)(ALCcontext *)> alcCtx(alcCreateContext(threadData->alcDev, nullptr),
+                                                             &alcDestroyContext);
 
-    if (!alcCtx) {
-        rgssThreadError(threadData, "Error creating OpenAL context");
-#ifdef MKXPZ_RUBY_GEM
-        RgssThreadManager::getInstance().unlockRgssThread();
-        throw std::system_error(std::error_code(), "RGSS failed to initialize!");
-#else
-        return 0;
-#endif
-    }
+    if (!alcCtx)
+        Debug() << "Error creating OpenAL context";
 
     alcMakeContextCurrent(alcCtx.get());
 
@@ -369,7 +361,7 @@ int main(int argc, char *argv[]) {
     SDL_GL_LoadLibrary("@rpath/libEGL.dylib");
 #endif
 #endif
-    
+
     win.reset(SDL_CreateWindow(conf.windowTitle.c_str(), SDL_WINDOWPOS_UNDEFINED,
                            SDL_WINDOWPOS_UNDEFINED, conf.defScreenW,
                            conf.defScreenH, winFlags));
@@ -397,7 +389,7 @@ int main(int argc, char *argv[]) {
     #define DEBUG_FSELECT_MSG "Select the folder from which to load game files. This is the folder containing the game's INI."
 #define DEBUG_FSELECT_PROMPT "Load Game"
     if (conf.manualFolderSelect) {
-        std::string dataDirStr = mkxp_fs::selectPath(win, DEBUG_FSELECT_MSG, DEBUG_FSELECT_PROMPT);
+        std::string dataDirStr = mkxp_fs::selectPath(win.get(), DEBUG_FSELECT_MSG, DEBUG_FSELECT_PROMPT);
         if (!dataDirStr.empty()) {
             conf.gameFolder = dataDirStr;
             mkxp_fs::setCurrentDirectory(dataDirStr.c_str());
@@ -412,7 +404,7 @@ int main(int argc, char *argv[]) {
     /* OSX and Windows have their own native ways of
      * dealing with icons; don't interfere with them */
 #ifdef __LINUX__
-    setupWindowIcon(conf, win);
+    setupWindowIcon(conf, win.get());
 #else
     (void) setupWindowIcon;
 #endif
@@ -420,10 +412,8 @@ int main(int argc, char *argv[]) {
 
     std::unique_ptr<ALCdevice, ALCboolean(*)(ALCdevice*)> alcDev(alcOpenDevice(nullptr), &alcCloseDevice);
 
-    if (!alcDev) {
-      showInitError("Could not detect an available audio device.");
-      return 0;
-    }
+    if (!alcDev)
+      Debug() << "Could not detect an available audio device.";
 
     SDL_DisplayMode mode;
     SDL_GetDisplayMode(0, 0, &mode);
@@ -435,7 +425,7 @@ int main(int argc, char *argv[]) {
     EventThread eventThread;
 
 #ifndef MKXPZ_INIT_GL_LATER
-    SDL_GLContext glCtx = initGL(win, conf, 0);
+    SDL_GLContext glCtx = initGL(win.get(), conf, 0);
 #else
     SDL_GLContext glCtx = nullptr;
 #endif
@@ -458,7 +448,7 @@ int main(int argc, char *argv[]) {
 
 #ifdef MKXPZ_BUILD_XCODE
     // Create Touch Bar
-    initTouchBar(win, conf);
+    initTouchBar(win.get(), conf);
 #endif
 
 #ifdef MKXPZ_RUBY_GEM
@@ -507,9 +497,6 @@ int main(int argc, char *argv[]) {
       SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, conf.game.title.c_str(),
                                rtData.rgssErrorMsg.c_str(), win.get());
     }
-
-    if (rtData.glContext)
-        SDL_GL_DeleteContext(rtData.glContext);
 
     /* Clean up any remainin events */
     eventThread.cleanup();

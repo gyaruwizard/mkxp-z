@@ -222,12 +222,12 @@ struct BitmapPrivate
      * whose Bitmaps don't fit into a regular texture. They're
      * kept in RAM and will throw an error if they're used in
      * any context other than as Tilesets */
-    SDL_Surface *megaSurface;
+    SDL_Surface *megaSurface = nullptr;
     
     /* A cached version of the bitmap in client memory, for
      * getPixel calls. Is invalidated any time the bitmap
      * is modified */
-    SDL_Surface *surface;
+    SDL_Surface *surface = nullptr;
     SDL_PixelFormat *format;
 
     /* The 'tainted' area describes which parts of the
@@ -239,17 +239,15 @@ struct BitmapPrivate
     pixman_region16_t tainted;
 
     // For high-resolution texture replacement.
-    Bitmap *selfHires;
-    Bitmap *selfLores;
-    bool assumingRubyGC;
+    Bitmap* selfHires = nullptr;
+    Bitmap *selfLores = nullptr;
+    std::unique_ptr<Bitmap> managedHires;
+    bool assumingRubyGC = false;
 
+    
     BitmapPrivate(Bitmap *self)
-            : self(self),
-              megaSurface(0),
-              selfHires(0),
-              selfLores(0),
-              surface(0),
-              assumingRubyGC(false) {
+    : self(self)
+    {
         format = SDL_AllocFormat(SDL_PIXELFORMAT_ABGR8888);
 
         animation.width = 0;
@@ -274,7 +272,15 @@ struct BitmapPrivate
         SDL_FreeFormat(format);
         pixman_region_fini(&tainted);
     }
-    
+
+    void setHires(std::unique_ptr<Bitmap> &&hires) {
+        managedHires = std::move(hires);
+        if (assumingRubyGC)
+            selfHires = managedHires.release();
+        else
+            selfHires = managedHires.get();
+    }
+
     TEXFBO &getGLTypes() {
         return (animation.enabled) ? animation.currentFrame() : gl;
     }
@@ -483,16 +489,17 @@ Bitmap::Bitmap(const char *filename)
 {
     std::string hiresPrefix = "Hires/";
     std::string filenameStd = filename;
-    Bitmap *hiresBitmap = nullptr;
+    std::unique_ptr<Bitmap> hiresBitmap = nullptr;
     // TODO: once C++20 is required, switch to filenameStd.starts_with(hiresPrefix)
     if (shState->config().enableHires && filenameStd.compare(0, hiresPrefix.size(), hiresPrefix) != 0) {
         // Look for a high-res version of the file.
         std::string hiresFilename = hiresPrefix + filenameStd;
         try {
-            hiresBitmap = new Bitmap(hiresFilename.c_str());
+            hiresBitmap = std::make_unique<Bitmap>(hiresFilename.c_str());
             hiresBitmap->setLores(this);
         }
-        catch (const Exception &e) {
+        catch (const Exception &)
+        {
             Debug() << "No high-res Bitmap found at" << hiresFilename;
             hiresBitmap = nullptr;
         }
@@ -511,9 +518,9 @@ Bitmap::Bitmap(const char *filename)
     }
     
     if (handler.gif) {
-        p = new BitmapPrivate(this);
+        p = std::make_unique<BitmapPrivate>(this);
 
-        p->selfHires = hiresBitmap;
+        p->setHires(std::move(hiresBitmap));
         
         if (handler.gif->width >= (uint32_t)glState.caps.maxTexSize || handler.gif->height > (uint32_t)glState.caps.maxTexSize) {
             throw new Exception(Exception::MKXPError, "Animation too large (%ix%i, max %ix%i)",
@@ -591,7 +598,7 @@ Bitmap::Bitmap(const char *filename)
                 gif_finalise(handler.gif);
                 delete handler.gif;
                 delete handler.gif_data;
-
+                
                 throw;
             }
 
@@ -610,12 +617,11 @@ Bitmap::Bitmap(const char *filename)
     SDL_Surface *imgSurf = handler.surface;
 
 
-    p->ensureFormat(imgSurf, SDL_PIXELFORMAT_ABGR8888);
-
+    BitmapPrivate::ensureFormat(imgSurf, SDL_PIXELFORMAT_ABGR8888);
     if (imgSurf->w > glState.caps.maxTexSize || imgSurf->h > glState.caps.maxTexSize) {
         /* Mega surface */
-        p = new BitmapPrivate(this);
-        p->selfHires = hiresBitmap;
+        p = std::make_unique<BitmapPrivate>(this);
+        p->setHires(std::move(hiresBitmap));
         p->megaSurface = imgSurf;
         SDL_SetSurfaceBlendMode(p->megaSurface, SDL_BLENDMODE_NONE);
     } else {
@@ -625,13 +631,14 @@ Bitmap::Bitmap(const char *filename)
         try {
             tex = shState->texPool().request(imgSurf->w, imgSurf->h);
         }
-        catch (const Exception &e) {
+        catch (const Exception &)
+        {
             SDL_FreeSurface(imgSurf);
             throw;
         }
         
-        p = new BitmapPrivate(this);
-        p->selfHires = hiresBitmap;
+        p = std::make_unique<BitmapPrivate>(this);
+        p->setHires(std::move(hiresBitmap));
         p->gl = tex;
         if (p->selfHires != nullptr) {
             p->gl.selfHires = &p->selfHires->getGLTypes();
@@ -650,26 +657,26 @@ Bitmap::Bitmap(int width, int height, bool isHires)
 {
     if (width <= 0 || height <= 0)
         throw Exception(Exception::RGSSError, "failed to create bitmap");
-
-    Bitmap *hiresBitmap = nullptr;
+    
+    std::unique_ptr<Bitmap> hiresBitmap;
 
     if (shState->config().enableHires && !isHires) {
         // Create a high-res version as well.
         double scalingFactor = shState->config().textureScalingFactor;
-        int hiresWidth = (int) lround(scalingFactor * width);
-        int hiresHeight = (int) lround(scalingFactor * height);
-        hiresBitmap = new Bitmap(hiresWidth, hiresHeight, true);
+        int hiresWidth = (int)lround(scalingFactor * width);
+        int hiresHeight = (int)lround(scalingFactor * height);
+        hiresBitmap = std::make_unique<Bitmap>(hiresWidth, hiresHeight, true);
         hiresBitmap->setLores(this);
     }
 
     TEXFBO tex = shState->texPool().request(width, height);
     
-    p = new BitmapPrivate(this);
+    p = std::make_unique<BitmapPrivate>(this);
     p->gl = tex;
     if (p->selfHires != nullptr) {
         p->gl.selfHires = &p->selfHires->getGLTypes();
     }
-    p->selfHires = hiresBitmap;
+    p->setHires(std::move(hiresBitmap));
     
     clear();
 }
@@ -690,7 +697,7 @@ Bitmap::Bitmap(void *pixeldata, int width, int height)
     
     if (surface->w > glState.caps.maxTexSize || surface->h > glState.caps.maxTexSize)
     {
-        p = new BitmapPrivate(this);
+        p = std::make_unique<BitmapPrivate>(this);
         p->megaSurface = surface;
         SDL_SetSurfaceBlendMode(p->megaSurface, SDL_BLENDMODE_NONE);
     }
@@ -706,7 +713,7 @@ Bitmap::Bitmap(void *pixeldata, int width, int height)
             throw;
         }
         
-        p = new BitmapPrivate(this);
+        p = std::make_unique<BitmapPrivate>(this);
         p->gl = tex;
         
         TEX::bind(p->gl.tex);
@@ -729,7 +736,7 @@ Bitmap::Bitmap(const Bitmap &other, int frame)
         Debug() << "BUG: High-res Bitmap from animation not implemented";
     }
 
-    p = new BitmapPrivate(this);
+    p = std::make_unique<BitmapPrivate>(this);
     
     // TODO: Clean me up
     if (!other.isAnimated() || frame >= -1) {
@@ -815,7 +822,7 @@ int Bitmap::height() const
 bool Bitmap::hasHires() const{
     guardDisposed();
 
-    return p->selfHires;
+    return p->selfHires != nullptr;
 }
 
 DEF_ATTR_RD_SIMPLE(Bitmap, Hires, Bitmap*, p->selfHires)
@@ -826,6 +833,8 @@ void Bitmap::setHires(Bitmap *hires) {
     Debug() << "BUG: High-res Bitmap setHires not fully implemented, expect bugs";
     hires->setLores(this);
     p->selfHires = hires;
+    if (!p->assumingRubyGC)
+        p->managedHires.reset(hires);
 }
 
 void Bitmap::setLores(Bitmap *lores) {
@@ -2426,7 +2435,7 @@ int Bitmap::maxSize(){
 // If a game suddenly explodes during Graphics.update, maybe try
 // breakpointing this?
 bool Bitmap::invalid() const {
-    return p == 0;
+    return p == nullptr;
 }
 
 void Bitmap::assumeRubyGC()
@@ -2436,10 +2445,6 @@ void Bitmap::assumeRubyGC()
 
 void Bitmap::releaseResources()
 {
-    if (p->selfHires && !p->assumingRubyGC) {
-        delete p->selfHires;
-    }
-
     if (p->megaSurface)
         SDL_FreeSurface(p->megaSurface);
     else if (p->animation.enabled) {
@@ -2450,6 +2455,4 @@ void Bitmap::releaseResources()
     }
     else
         shState->texPool().release(p->gl);
-    
-    delete p;
 }
