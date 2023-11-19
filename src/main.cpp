@@ -125,12 +125,12 @@ int rgssThreadFun(void *userdata) {
   if (!threadData->glContext)
     return 0;
 #else
-  SDL_GL_MakeCurrent(threadData->window, threadData->glContext);
+  SDL_GL_MakeCurrent(threadData->window, threadData->glContext.get());
 #endif
 
   /* Setup AL context */
   std::unique_ptr<ALCcontext, void (*)(ALCcontext *)> alcCtx(alcCreateContext(threadData->alcDev, 0),
-                                                             alcDestroyContext);
+                                                             &alcDestroyContext);
 
   if (!alcCtx) {
     rgssThreadError(threadData, "Error creating OpenAL context");
@@ -376,7 +376,7 @@ int main(int argc, char *argv[]) {
 #ifndef MKXPZ_INIT_GL_LATER
     SDL_GLContext glCtx = initGL(win, conf, 0);
 #else
-    SDL_GLContext glCtx = NULL;
+    SDL_GLContext glCtx = nullptr;
 #endif
 
     RGSSThreadData rtData(&eventThread, argv[0], win.get(), alcDev.get(), mode.refresh_rate,
