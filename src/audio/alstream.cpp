@@ -75,11 +75,13 @@ void ALStream::close()
 	case Playing:
 	case Paused:
 		stopStream();
+        [[fallthrough]];
 	case Stopped:
 		closeSource();
 		state = Closed;
+        break;
 	case Closed:
-		return;
+		break;
 	}
 }
 
@@ -92,10 +94,13 @@ void ALStream::open(const std::string &filename)
 	case Playing:
 	case Paused:
 		stopStream();
+        [[fallthrough]];
 	case Stopped:
 		closeSource();
+        [[fallthrough]];
 	case Closed:
 		openSource(filename);
+        break;
 	}
 
 	state = Stopped;
@@ -204,8 +209,9 @@ struct ALStreamOpenHandler : FileSystem::OpenHandler
 	ALStreamOpenHandler(SDL_RWops &srcOps, bool looped)
 	    : srcOps(&srcOps), looped(looped), source(nullptr)
 	{}
+    ~ALStreamOpenHandler() override = default;
 
-	bool tryRead(SDL_RWops &ops, const char *ext)
+	bool tryRead(SDL_RWops &ops, const char *ext) override
 	{
 		/* Copy this because we need to keep it around,
 		 * as we will continue reading data from it later */
@@ -272,8 +278,8 @@ void ALStream::stopStream()
 
 	if (thread)
 	{
-		SDL_WaitThread(thread, 0);
-		thread = 0;
+		SDL_WaitThread(thread, nullptr);
+		thread = nullptr;
 		needsRewind.set();
 	}
 
