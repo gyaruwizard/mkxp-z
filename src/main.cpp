@@ -389,7 +389,7 @@ int main(int argc, char *argv[]) {
     #define DEBUG_FSELECT_MSG "Select the folder from which to load game files. This is the folder containing the game's INI."
 #define DEBUG_FSELECT_PROMPT "Load Game"
     if (conf.manualFolderSelect) {
-        std::string dataDirStr = mkxp_fs::selectPath(win, DEBUG_FSELECT_MSG, DEBUG_FSELECT_PROMPT);
+        std::string dataDirStr = mkxp_fs::selectPath(win.get(), DEBUG_FSELECT_MSG, DEBUG_FSELECT_PROMPT);
         if (!dataDirStr.empty()) {
             conf.gameFolder = dataDirStr;
             mkxp_fs::setCurrentDirectory(dataDirStr.c_str());
