@@ -26,6 +26,7 @@
 #include <SDL_gamecontroller.h>
 #include <string>
 #include <vector>
+#include <memory>
 
 extern std::unordered_map<int, int> vKeyToScancode;
 extern std::unordered_map<std::string, int> strToScancode;
@@ -117,12 +118,12 @@ public:
     const char *getButtonName(SDL_GameControllerButton button);
 
 private:
-	Input(const RGSSThreadData &rtData);
+	explicit Input(const RGSSThreadData &rtData);
 	~Input();
 
 	friend struct SharedStatePrivate;
 
-	InputPrivate *p;
+	std::unique_ptr<InputPrivate> p;
 };
 
 #endif // INPUT_H
