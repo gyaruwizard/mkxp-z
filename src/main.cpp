@@ -397,7 +397,7 @@ int main(int argc, char *argv[]) {
     
 #ifdef MKXPZ_BUILD_XCODE
     // Create Touch Bar
-    initTouchBar(win, conf);
+    initTouchBar(win.get(), conf);
 #endif
 
     /* Start RGSS thread */
