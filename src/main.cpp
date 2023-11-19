@@ -138,7 +138,12 @@ std::unique_ptr<ALCcontext, void (*)(ALCcontext *)> startRgssThread(RGSSThreadDa
 #ifdef MKXPZ_INIT_GL_LATER
   threadData->glContext.reset(initGL(threadData->window, threadData->config, threadData));
   if (!threadData->glContext)
+#ifdef MKXPZ_RUBY_GEM
+        RgssThreadManager::getInstance().unlockRgssThread();
+    throw std::system_error(std::error_code(), "RGSS failed to initialize!");
+#else
     return 0;
+#endif
 #else
   SDL_GL_MakeCurrent(threadData->window, threadData->glContext.get());
 #endif
