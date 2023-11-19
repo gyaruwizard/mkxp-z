@@ -162,19 +162,13 @@ main_source = files(
     'display/gl/vertex.cpp',
 
     'util/iniconfig.cpp',
-    'util/raiiwrapper.cpp',
     'util/win-consoleutils.cpp',
-    'util/sdl/core.cpp',
-    'util/sdl/image.cpp',
-    'util/sdl/ttf.cpp',
-    'util/sdl/sound.cpp',
     
     'etc/etc.cpp',
     'etc/table.cpp',
 
     'filesystem/filesystem.cpp',
     'filesystem/filesystemImpl.cpp',
-    'filesystem/physresources.cpp',
     
     'input/input.cpp',
     'input/keybindings.cpp',

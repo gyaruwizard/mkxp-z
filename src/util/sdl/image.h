@@ -10,12 +10,23 @@
 
 #include "raiiwrapper.h"
 
+#include <SDL_image.h>
+
 namespace SDL2 {
 
     class Image : public RaiiWrapper {
     public:
-        explicit Image(int flags);
-        ~Image();
+        explicit Image(int flags) {
+            if (IMG_Init(flags) == flags)
+                startupSucceeded();
+            else
+                startupFailed(std::string("Error initializing SDL_image: ") +
+                              SDL_GetError());
+        }
+        ~Image() {
+            if (startedSuccessfully())
+                IMG_Quit();
+        }
 
         Image(const Image &) = delete;
         Image(Image&&) = delete;
