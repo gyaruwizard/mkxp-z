@@ -10,12 +10,24 @@
 
 #include "raiiwrapper.h"
 
+#include <SDL_ttf.h>
+
 namespace SDL2 {
 
     class TTF : public RaiiWrapper {
     public:
-        explicit TTF();
-        ~TTF();
+        explicit TTF()  {
+            if (TTF_Init() >= 0)
+                startupSucceeded();
+            else
+                startupFailed(std::string("Error initializing SDL_ttf: ") +
+                              SDL_GetError());
+        }
+
+        ~TTF()  {
+            if (startedSuccessfully())
+                TTF_Quit();
+        }
 
         TTF(const TTF &) = delete;
         TTF(TTF&&) = delete;

@@ -10,12 +10,23 @@
 
 #include "raiiwrapper.h"
 
+#include <SDL_sound.h>
+
 namespace SDL2 {
 
     class Sound : public RaiiWrapper {
     public:
-        explicit Sound();
-        ~Sound();
+        explicit Sound() {
+            if (Sound_Init() != 0)
+                startupSucceeded();
+            else
+                startupFailed(std::string("Error initializing SDL_sound: ") + Sound_GetError());
+        }
+
+        ~Sound()  {
+            if (startedSuccessfully())
+                Sound_Quit();
+        }
 
         Sound(const Sound &) = delete;
         Sound(Sound&&) = delete;

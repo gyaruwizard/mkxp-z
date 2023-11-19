@@ -10,14 +10,22 @@
 
 #include "raiiwrapper.h"
 
-#include <SDL_stdinc.h>
+#include <SDL2/SDL.h>
 
 namespace SDL2 {
 
     class Core : public RaiiWrapper {
     public:
-        explicit Core(Uint32 flags);
-        ~Core();
+        explicit Core(Uint32 flags) {
+            if (SDL_Init(flags) >= 0)
+                startupSucceeded();
+            else
+                startupFailed(std::string("Error initializing SDL: ") + SDL_GetError());
+        }
+        ~Core() {
+            if (startedSuccessfully())
+                SDL_Quit();
+        }
 
         Core(const Core &) = delete;
         Core(Core&&) = delete;

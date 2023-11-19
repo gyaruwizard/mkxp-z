@@ -13,12 +13,22 @@
 
 class RaiiWrapper {
 public:
-    bool startedSuccessfully() const;
-    const std::string &getErrorMessage() const;
+    inline bool startedSuccessfully() const {
+        return started;
+    }
+
+    inline const std::string &getErrorMessage() const {
+        return errorMessage;
+    }
 
 protected:
-    void startupSucceeded();
-    void startupFailed(std::string &&msg);
+    inline void startupSucceeded() {
+        started = true;
+    }
+
+    inline void startupFailed(std::string &&msg) {
+        errorMessage = std::move(msg);
+    }
 
 private:
     bool started = false;
