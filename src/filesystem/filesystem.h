@@ -24,8 +24,10 @@
 
 #include <SDL_rwops.h>
 #include <string>
+#include <memory>
 
 #include "filesystemImpl.h"
+#include "physresources.h"
 
 namespace mkxp_fs = filesystemImpl;
 
@@ -80,6 +82,7 @@ public:
 	const char *desensitize(const char *filename);
 
 private:
+    PhysResources resources;
 	std::unique_ptr<FileSystemPrivate> p;
 };
 

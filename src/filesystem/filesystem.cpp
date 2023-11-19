@@ -294,9 +294,9 @@ static void throwPhysfsError(const char *desc) {
   throw Exception(Exception::PHYSFSError, "%s: %s", desc, englishStr);
 }
 
-FileSystem::FileSystem(const char *argv0, bool allowSymlinks) {
-  if (PHYSFS_init(argv0) == 0)
-    throwPhysfsError("Error initializing PhysFS");
+FileSystem::FileSystem(const char *argv0, bool allowSymlinks) : resources(argv0) {
+  if (!resources.startedSuccessfully())
+    throwPhysfsError(resources.getErrorMessage().data());
 
   /* One error (=return 0) turns the whole product to 0 */
 
@@ -316,10 +316,7 @@ FileSystem::FileSystem(const char *argv0, bool allowSymlinks) {
     PHYSFS_permitSymbolicLinks(1);
 }
 
-FileSystem::~FileSystem() {
-  if (PHYSFS_deinit() == 0)
-    Debug() << "PhyFS failed to deinit.";
-}
+FileSystem::~FileSystem() = default;
 
 void FileSystem::addPath(const char *path, const char *mountpoint, bool reload) {
   /* Try the normal mount first */
@@ -437,7 +434,7 @@ static PHYSFS_EnumerateCallbackResult cacheEnumCB(void *d, const char *origdir,
 }
 
 void FileSystem::createPathCache() {
-  CacheEnumData data(p);
+  CacheEnumData data(p.get());
   data.fileLists.push(&p->fileLists[""]);
   PHYSFS_enumerate("", cacheEnumCB, &data);
 
@@ -515,7 +512,7 @@ findFontsFolderCB(void *data, const char *, const char *fname) {
 }
 
 void FileSystem::initFontSets(SharedFontState &sfs) {
-  FontSetsCBData d = {p, &sfs};
+  FontSetsCBData d = {p.get(), &sfs};
 
   PHYSFS_enumerate("", findFontsFolderCB, &d);
 }

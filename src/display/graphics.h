@@ -24,6 +24,8 @@
 
 #include "util.h"
 
+#include <memory>
+
 class Scene;
 class Bitmap;
 class Disposable;
