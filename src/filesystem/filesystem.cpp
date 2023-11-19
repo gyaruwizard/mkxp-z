@@ -309,7 +309,7 @@ FileSystem::FileSystem(const char *argv0, bool allowSymlinks) {
   if (er == 0)
     throwPhysfsError("Error registering PhysFS RGSS archiver");
 
-  p = new FileSystemPrivate;
+  p = std::make_unique<FileSystemPrivate>();
   p->havePathCache = false;
 
   if (allowSymlinks)
@@ -317,8 +317,6 @@ FileSystem::FileSystem(const char *argv0, bool allowSymlinks) {
 }
 
 FileSystem::~FileSystem() {
-  delete p;
-
   if (PHYSFS_deinit() == 0)
     Debug() << "PhyFS failed to deinit.";
 }

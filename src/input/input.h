@@ -117,12 +117,12 @@ public:
     const char *getButtonName(SDL_GameControllerButton button);
 
 private:
-	Input(const RGSSThreadData &rtData);
+	explicit Input(const RGSSThreadData &rtData);
 	~Input();
 
 	friend struct SharedStatePrivate;
 
-	InputPrivate *p;
+	std::unique_ptr<InputPrivate> p;
 };
 
 #endif // INPUT_H

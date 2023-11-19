@@ -80,7 +80,7 @@ public:
 	const char *desensitize(const char *filename);
 
 private:
-	FileSystemPrivate *p;
+	std::unique_ptr<FileSystemPrivate> p;
 };
 
 extern const Uint32 SDL_RWOPS_PHYSFS;

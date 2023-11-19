@@ -99,7 +99,7 @@ public:
     void unlock(bool force = false);
 
 private:
-	Graphics(RGSSThreadData *data);
+    explicit Graphics(RGSSThreadData *data);
 	~Graphics();
 
 	void addDisposable(Disposable *);
@@ -108,7 +108,7 @@ private:
 	friend struct SharedStatePrivate;
 	friend class Disposable;
 
-	GraphicsPrivate *p;
+	std::unique_ptr<GraphicsPrivate> p;
 };
 
 #define GFX_LOCK shState->graphics().lock()
