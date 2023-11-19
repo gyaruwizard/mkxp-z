@@ -27,10 +27,12 @@
 
 #include <string>
 #include <SDL_rwops.h>
+#include <memory>
+#include <array>
 
 struct ALDataSource;
 
-#define STREAM_BUFS 3
+constexpr int STREAM_BUFS = 3;
 
 /* State-machine like audio playback stream.
  * This class is NOT thread safe */
@@ -45,15 +47,15 @@ struct ALStream
 	};
 
 	bool looped;
-	State state;
+	State state = Closed;
 
-	ALDataSource *source;
-	SDL_Thread *thread;
+	std::unique_ptr<ALDataSource> source;
+	SDL_Thread *thread = nullptr;
 
 	std::string threadName;
 
 	SDL_mutex *pauseMut;
-	bool preemptPause;
+	bool preemptPause = false;
 
 	/* When this flag isn't set and alSrc is
 	 * in 'STOPPED' state, stream isn't over
@@ -66,10 +68,10 @@ struct ALStream
 	AtomicFlag needsRewind;
 	float startOffset;
 
-	float pitch;
+	float pitch = 1.0f;
 
 	AL::Source::ID alSrc;
-	AL::Buffer::ID alBuf[STREAM_BUFS];
+	std::array<AL::Buffer::ID, STREAM_BUFS> alBuf;
 
 	uint64_t procFrames;
 	AL::Buffer::ID lastBuf;

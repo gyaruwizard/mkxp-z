@@ -40,13 +40,15 @@ RB_METHOD(windowVXInitialize) {
 
     GFX_LOCK;
   if (rgssVer >= 3) {
-    int x, y, width, height;
-    x = y = width = height = 0;
+    int x = 0;
+      int y = 0;
+      int width = 0;
+      int height = 0;
 
     if (argc == 4)
       rb_get_args(argc, argv, "iiii", &x, &y, &width, &height RB_ARG_END);
 
-    w = new WindowVX(x, y, width, height);
+    w = initInstance<WindowVX>(x, y, width, height);
   } else {
     w = viewportElementInitialize<WindowVX>(argc, argv, self);
   }
@@ -60,7 +62,7 @@ RB_METHOD(windowVXInitialize) {
   if (rgssVer >= 3)
     wrapProperty(self, &w->getTone(), "tone", ToneType);
 
-  Bitmap *contents = new Bitmap(1, 1);
+    auto contents = initInstance<Bitmap>(1, 1);
   VALUE contentsObj = wrapObject(contents, BitmapType);
   bitmapInitProps(contents, contentsObj);
   rb_iv_set(self, "contents", contentsObj);
@@ -70,7 +72,7 @@ RB_METHOD(windowVXInitialize) {
 }
 
 RB_METHOD(windowVXUpdate) {
-  RB_UNUSED_PARAM;
+  RB_UNUSED_PARAM
 
   WindowVX *w = getPrivateData<WindowVX>(self);
 
@@ -84,7 +86,10 @@ RB_METHOD(windowVXUpdate) {
 RB_METHOD(windowVXMove) {
   WindowVX *w = getPrivateData<WindowVX>(self);
 
-  int x, y, width, height;
+  int x;
+    int y;
+    int width;
+    int height;
   rb_get_args(argc, argv, "iiii", &x, &y, &width, &height RB_ARG_END);
 
     GFX_LOCK;
@@ -95,17 +100,17 @@ RB_METHOD(windowVXMove) {
 }
 
 RB_METHOD(windowVXIsOpen) {
-  RB_UNUSED_PARAM;
+  RB_UNUSED_PARAM
 
-  WindowVX *w = getPrivateData<WindowVX>(self);
+  const WindowVX *w = getPrivateData<WindowVX>(self);
 
   return rb_bool_new(w->isOpen());
 }
 
 RB_METHOD(windowVXIsClosed) {
-  RB_UNUSED_PARAM;
+  RB_UNUSED_PARAM
 
-  WindowVX *w = getPrivateData<WindowVX>(self);
+  const WindowVX *w = getPrivateData<WindowVX>(self);
 
   return rb_bool_new(w->isClosed());
 }
@@ -147,30 +152,30 @@ void windowVXBindingInit() {
   _rb_define_method(klass, "initialize", windowVXInitialize);
   _rb_define_method(klass, "update", windowVXUpdate);
 
-  INIT_PROP_BIND(WindowVX, Windowskin, "windowskin");
-  INIT_PROP_BIND(WindowVX, Contents, "contents");
-  INIT_PROP_BIND(WindowVX, CursorRect, "cursor_rect");
-  INIT_PROP_BIND(WindowVX, Active, "active");
-  INIT_PROP_BIND(WindowVX, Pause, "pause");
-  INIT_PROP_BIND(WindowVX, X, "x");
-  INIT_PROP_BIND(WindowVX, Y, "y");
-  INIT_PROP_BIND(WindowVX, Width, "width");
-  INIT_PROP_BIND(WindowVX, Height, "height");
-  INIT_PROP_BIND(WindowVX, OX, "ox");
-  INIT_PROP_BIND(WindowVX, OY, "oy");
-  INIT_PROP_BIND(WindowVX, Opacity, "opacity");
-  INIT_PROP_BIND(WindowVX, BackOpacity, "back_opacity");
-  INIT_PROP_BIND(WindowVX, ContentsOpacity, "contents_opacity");
-  INIT_PROP_BIND(WindowVX, Openness, "openness");
+  INIT_PROP_BIND(WindowVX, Windowskin, "windowskin")
+  INIT_PROP_BIND(WindowVX, Contents, "contents")
+  INIT_PROP_BIND(WindowVX, CursorRect, "cursor_rect")
+  INIT_PROP_BIND(WindowVX, Active, "active")
+  INIT_PROP_BIND(WindowVX, Pause, "pause")
+  INIT_PROP_BIND(WindowVX, X, "x")
+  INIT_PROP_BIND(WindowVX, Y, "y")
+  INIT_PROP_BIND(WindowVX, Width, "width")
+  INIT_PROP_BIND(WindowVX, Height, "height")
+  INIT_PROP_BIND(WindowVX, OX, "ox")
+  INIT_PROP_BIND(WindowVX, OY, "oy")
+  INIT_PROP_BIND(WindowVX, Opacity, "opacity")
+  INIT_PROP_BIND(WindowVX, BackOpacity, "back_opacity")
+  INIT_PROP_BIND(WindowVX, ContentsOpacity, "contents_opacity")
+  INIT_PROP_BIND(WindowVX, Openness, "openness")
 
   if (rgssVer >= 3) {
     _rb_define_method(klass, "move", windowVXMove);
     _rb_define_method(klass, "open?", windowVXIsOpen);
     _rb_define_method(klass, "close?", windowVXIsClosed);
 
-    INIT_PROP_BIND(WindowVX, ArrowsVisible, "arrows_visible");
-    INIT_PROP_BIND(WindowVX, Padding, "padding");
-    INIT_PROP_BIND(WindowVX, PaddingBottom, "padding_bottom");
-    INIT_PROP_BIND(WindowVX, Tone, "tone");
+    INIT_PROP_BIND(WindowVX, ArrowsVisible, "arrows_visible")
+    INIT_PROP_BIND(WindowVX, Padding, "padding")
+    INIT_PROP_BIND(WindowVX, PaddingBottom, "padding_bottom")
+    INIT_PROP_BIND(WindowVX, Tone, "tone")
   }
 }

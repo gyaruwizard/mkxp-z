@@ -71,13 +71,13 @@ void planeBindingInit() {
 
   _rb_define_method(klass, "initialize", planeInitialize);
 
-  INIT_PROP_BIND(Plane, Bitmap, "bitmap");
-  INIT_PROP_BIND(Plane, OX, "ox");
-  INIT_PROP_BIND(Plane, OY, "oy");
-  INIT_PROP_BIND(Plane, ZoomX, "zoom_x");
-  INIT_PROP_BIND(Plane, ZoomY, "zoom_y");
-  INIT_PROP_BIND(Plane, Opacity, "opacity");
-  INIT_PROP_BIND(Plane, BlendType, "blend_type");
-  INIT_PROP_BIND(Plane, Color, "color");
-  INIT_PROP_BIND(Plane, Tone, "tone");
+  INIT_PROP_BIND(Plane, Bitmap, "bitmap")
+  INIT_PROP_BIND(Plane, OX, "ox")
+  INIT_PROP_BIND(Plane, OY, "oy")
+  INIT_PROP_BIND(Plane, ZoomX, "zoom_x")
+  INIT_PROP_BIND(Plane, ZoomY, "zoom_y")
+  INIT_PROP_BIND(Plane, Opacity, "opacity")
+  INIT_PROP_BIND(Plane, BlendType, "blend_type")
+  INIT_PROP_BIND(Plane, Color, "color")
+  INIT_PROP_BIND(Plane, Tone, "tone")
 }

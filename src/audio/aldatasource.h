@@ -24,6 +24,8 @@
 
 #include "al-util.h"
 
+#include <memory>
+
 struct ALDataSource
 {
 	enum Status
@@ -34,7 +36,7 @@ struct ALDataSource
 		Error
 	};
 
-	virtual ~ALDataSource() {}
+	virtual ~ALDataSource() = default;
 
 	/* Read/process next chunk of data, and attach it
 	 * to provided AL buffer */
@@ -53,15 +55,15 @@ struct ALDataSource
 	virtual bool setPitch(float value) = 0;
 };
 
-ALDataSource *createSDLSource(SDL_RWops &ops,
-                              const char *extension,
-			                  uint32_t maxBufSize,
-			                  bool looped);
+std::unique_ptr<ALDataSource> createSDLSource(SDL_RWops &ops,
+                                              const char *extension,
+                                              uint32_t maxBufSize,
+                                              bool looped);
 
-ALDataSource *createVorbisSource(SDL_RWops &ops,
-                                 bool looped);
+std::unique_ptr<ALDataSource> createVorbisSource(SDL_RWops &ops,
+                                                 bool looped);
 
-ALDataSource *createMidiSource(SDL_RWops &ops,
-                               bool looped);
+std::unique_ptr<ALDataSource> createMidiSource(SDL_RWops &ops,
+                                               bool looped);
 
 #endif // ALDATASOURCE_H

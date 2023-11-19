@@ -37,12 +37,7 @@
 
 ALStream::ALStream(LoopMode loopMode,
 		           const std::string &threadId)
-	: looped(loopMode == Looped),
-	  state(Closed),
-	  source(0),
-	  thread(0),
-	  preemptPause(false),
-      pitch(1.0f)
+	: looped(loopMode == Looped)
 {
 	alSrc = AL::Source::gen();
 
@@ -80,11 +75,13 @@ void ALStream::close()
 	case Playing:
 	case Paused:
 		stopStream();
+        [[fallthrough]];
 	case Stopped:
 		closeSource();
 		state = Closed;
+        break;
 	case Closed:
-		return;
+		break;
 	}
 }
 
@@ -97,10 +94,13 @@ void ALStream::open(const std::string &filename)
 	case Playing:
 	case Paused:
 		stopStream();
+        [[fallthrough]];
 	case Stopped:
 		closeSource();
+        [[fallthrough]];
 	case Closed:
 		openSource(filename);
+        break;
 	}
 
 	state = Stopped;
@@ -196,40 +196,41 @@ float ALStream::queryOffset()
 
 void ALStream::closeSource()
 {
-	delete source;
+	source = nullptr;
 }
 
 struct ALStreamOpenHandler : FileSystem::OpenHandler
 {
 	SDL_RWops *srcOps;
 	bool looped;
-	ALDataSource *source;
+	std::unique_ptr<ALDataSource> source;
 	std::string errorMsg;
 
 	ALStreamOpenHandler(SDL_RWops &srcOps, bool looped)
-	    : srcOps(&srcOps), looped(looped), source(0)
+	    : srcOps(&srcOps), looped(looped), source(nullptr)
 	{}
+    ~ALStreamOpenHandler() override = default;
 
-	bool tryRead(SDL_RWops &ops, const char *ext)
+	bool tryRead(SDL_RWops &ops, const char *ext) override
 	{
 		/* Copy this because we need to keep it around,
 		 * as we will continue reading data from it later */
 		*srcOps = ops;
 
 		/* Try to read ogg file signature */
-		char sig[5] = { 0 };
-		SDL_RWread(srcOps, sig, 1, 4);
+		std::array<char, 5> sig = { 0 };
+		SDL_RWread(srcOps, sig.data(), 1, 4);
 		SDL_RWseek(srcOps, 0, RW_SEEK_SET);
 
 		try
 		{
-			if (!strcmp(sig, "OggS"))
+			if (!strcmp(sig.data(), "OggS"))
 			{
 				source = createVorbisSource(*srcOps, looped);
 				return true;
 			}
 
-			if (!strcmp(sig, "MThd"))
+			if (!strcmp(sig.data(), "MThd"))
 			{
 				shState->midiState().initIfNeeded(shState->config());
 
@@ -258,7 +259,7 @@ void ALStream::openSource(const std::string &filename)
 {
 	ALStreamOpenHandler handler(srcOps, looped);
 	shState->fileSystem().openRead(handler, filename.c_str());
-	source = handler.source;
+	source = std::move(handler.source);
 	needsRewind.clear();
 
 	if (!source)
@@ -277,8 +278,8 @@ void ALStream::stopStream()
 
 	if (thread)
 	{
-		SDL_WaitThread(thread, 0);
-		thread = 0;
+		SDL_WaitThread(thread, nullptr);
+		thread = nullptr;
 		needsRewind.set();
 	}
 

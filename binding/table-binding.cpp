@@ -29,7 +29,7 @@ static int num2TableSize(VALUE v) {
   return std::max(0, i);
 }
 
-static void parseArgsTableSizes(int argc, VALUE *argv, int *x, int *y, int *z) {
+static void parseArgsTableSizes(int argc, const VALUE *argv, int *x, int *y, int *z) {
   *y = *z = 1;
 
   switch (argc) {
@@ -53,11 +53,13 @@ DEF_ALLOCFUNC(Table);
 #endif
 
 RB_METHOD(tableInitialize) {
-  int x, y, z;
+  int x;
+    int y;
+    int z;
 
   parseArgsTableSizes(argc, argv, &x, &y, &z);
 
-  Table *t = new Table(x, y, z);
+  auto t = initInstance<Table>(x, y, z);
 
   setPrivateData(self, t);
 
@@ -67,7 +69,9 @@ RB_METHOD(tableInitialize) {
 RB_METHOD(tableResize) {
   Table *t = getPrivateData<Table>(self);
 
-  int x, y, z;
+  int x;
+    int y;
+    int z;
   parseArgsTableSizes(argc, argv, &x, &y, &z);
 
   t->resize(x, y, z);
@@ -87,12 +91,11 @@ TABLE_SIZE(y, Y)
 TABLE_SIZE(z, Z)
 
 RB_METHOD(tableGetAt) {
-  Table *t = getPrivateData<Table>(self);
+  const Table *t = getPrivateData<Table>(self);
 
-  int x, y, z;
-  x = y = z = 0;
-
-  x = NUM2INT(argv[0]);
+  int x = NUM2INT(argv[0]);
+    int y = 0;
+    int z = 0;
   if (argc > 1)
     y = NUM2INT(argv[1]);
   if (argc > 2)
@@ -114,14 +117,15 @@ RB_METHOD(tableGetAt) {
 RB_METHOD(tableSetAt) {
   Table *t = getPrivateData<Table>(self);
 
-  int x, y, z, value;
-  x = y = z = 0;
+  int x = 0;
+    int y = 0;
+    int z = 0;
+    int value = 0;
 
   if (argc < 2)
     rb_raise(rb_eArgError, "wrong number of arguments");
 
   switch (argc) {
-  default:
   case 2:
     x = NUM2INT(argv[0]);
     value = NUM2INT(argv[1]);
@@ -140,9 +144,12 @@ RB_METHOD(tableSetAt) {
     value = NUM2INT(argv[3]);
 
     break;
+
+      default:
+          break;
   }
 
-  t->set(value, x, y, z);
+  t->set((int16_t)value, x, y, z);
 
   return argv[argc - 1];
 }

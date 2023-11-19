@@ -32,13 +32,13 @@
 #include "src/util/util.h"
 
 RB_METHOD(inputDelta) {
-    RB_UNUSED_PARAM;
+    RB_UNUSED_PARAM
     
     return rb_float_new(shState->input().getDelta());
 }
 
 RB_METHOD(inputUpdate) {
-    RB_UNUSED_PARAM;
+    RB_UNUSED_PARAM
     
     shState->input().update();
     
@@ -95,7 +95,7 @@ static int getControllerButtonArg(VALUE *argv) {
 }
 
 RB_METHOD(inputPress) {
-    RB_UNUSED_PARAM;
+    RB_UNUSED_PARAM
     
     rb_check_argc(argc, 1);
     
@@ -108,7 +108,7 @@ RB_METHOD(inputPress) {
 }
 
 RB_METHOD(inputTrigger) {
-    RB_UNUSED_PARAM;
+    RB_UNUSED_PARAM
     
     rb_check_argc(argc, 1);
     
@@ -121,7 +121,7 @@ RB_METHOD(inputTrigger) {
 }
 
 RB_METHOD(inputRepeat) {
-    RB_UNUSED_PARAM;
+    RB_UNUSED_PARAM
     
     rb_check_argc(argc, 1);
     
@@ -134,7 +134,7 @@ RB_METHOD(inputRepeat) {
 }
 
 RB_METHOD(inputRelease) {
-    RB_UNUSED_PARAM;
+    RB_UNUSED_PARAM
     
     rb_check_argc(argc, 1);
     
@@ -147,7 +147,7 @@ RB_METHOD(inputRelease) {
 }
 
 RB_METHOD(inputCount) {
-    RB_UNUSED_PARAM;
+    RB_UNUSED_PARAM
     
     rb_check_argc(argc, 1);
     
@@ -160,7 +160,7 @@ RB_METHOD(inputCount) {
 }
 
 RB_METHOD(inputRepeatTime) {
-    RB_UNUSED_PARAM;
+    RB_UNUSED_PARAM
     
     rb_check_argc(argc, 1);
     
@@ -173,7 +173,7 @@ RB_METHOD(inputRepeatTime) {
 }
 
 RB_METHOD(inputPressEx) {
-    RB_UNUSED_PARAM;
+    RB_UNUSED_PARAM
     
     VALUE button;
     rb_scan_args(argc, argv, "1", &button);
@@ -187,7 +187,7 @@ RB_METHOD(inputPressEx) {
 }
 
 RB_METHOD(inputTriggerEx) {
-    RB_UNUSED_PARAM;
+    RB_UNUSED_PARAM
     
     VALUE button;
     rb_scan_args(argc, argv, "1", &button);
@@ -201,7 +201,7 @@ RB_METHOD(inputTriggerEx) {
 }
 
 RB_METHOD(inputRepeatEx) {
-    RB_UNUSED_PARAM;
+    RB_UNUSED_PARAM
     
     VALUE button;
     rb_scan_args(argc, argv, "1", &button);
@@ -215,7 +215,7 @@ RB_METHOD(inputRepeatEx) {
 }
 
 RB_METHOD(inputReleaseEx) {
-    RB_UNUSED_PARAM;
+    RB_UNUSED_PARAM
     
     VALUE button;
     rb_scan_args(argc, argv, "1", &button);
@@ -229,7 +229,7 @@ RB_METHOD(inputReleaseEx) {
 }
 
 RB_METHOD(inputCountEx) {
-    RB_UNUSED_PARAM;
+    RB_UNUSED_PARAM
     
     VALUE button;
     rb_scan_args(argc, argv, "1", &button);
@@ -243,7 +243,7 @@ RB_METHOD(inputCountEx) {
 }
 
 RB_METHOD(inputRepeatTimeEx) {
-    RB_UNUSED_PARAM;
+    RB_UNUSED_PARAM
     
     VALUE button;
     rb_scan_args(argc, argv, "1", &button);
@@ -257,44 +257,44 @@ RB_METHOD(inputRepeatTimeEx) {
 }
 
 RB_METHOD(inputDir4) {
-    RB_UNUSED_PARAM;
+    RB_UNUSED_PARAM
     
     return rb_fix_new(shState->input().dir4Value());
 }
 
 RB_METHOD(inputDir8) {
-    RB_UNUSED_PARAM;
+    RB_UNUSED_PARAM
     
     return rb_fix_new(shState->input().dir8Value());
 }
 
 /* Non-standard extensions */
 RB_METHOD(inputMouseX) {
-    RB_UNUSED_PARAM;
+    RB_UNUSED_PARAM
     
     return rb_fix_new(shState->input().mouseX());
 }
 
 RB_METHOD(inputMouseY) {
-    RB_UNUSED_PARAM;
+    RB_UNUSED_PARAM
     
     return rb_fix_new(shState->input().mouseY());
 }
 
 RB_METHOD(inputScrollV) {
-    RB_UNUSED_PARAM;
+    RB_UNUSED_PARAM
     
     return rb_fix_new(shState->input().scrollV());
 }
 
 RB_METHOD(inputMouseInWindow) {
-    RB_UNUSED_PARAM;
+    RB_UNUSED_PARAM
     
     return rb_bool_new(shState->input().mouseInWindow());
 }
 
 RB_METHOD(inputRawKeyStates) {
-    RB_UNUSED_PARAM;
+    RB_UNUSED_PARAM
     
     VALUE ret = rb_ary_new();
 
@@ -313,13 +313,13 @@ v = M_SYMBOL(#c);                                                          \
 break;
 
 RB_METHOD(inputControllerConnected) {
-    RB_UNUSED_PARAM;
+    RB_UNUSED_PARAM
     
     return rb_bool_new(shState->input().getControllerConnected());
 }
 
 RB_METHOD(inputControllerName) {
-    RB_UNUSED_PARAM;
+    RB_UNUSED_PARAM
     
     if (!shState->input().getControllerConnected())
         return rb_utf8_str_new_cstr("");
@@ -328,7 +328,7 @@ RB_METHOD(inputControllerName) {
 }
 
 RB_METHOD(inputControllerPowerLevel) {
-    RB_UNUSED_PARAM;
+    RB_UNUSED_PARAM
     
     VALUE ret;
     
@@ -353,7 +353,7 @@ RB_METHOD(inputControllerPowerLevel) {
 
 #define AXISFUNC(n, ax1, ax2) \
 RB_METHOD(inputControllerGet##n##Axis) {\
-RB_UNUSED_PARAM;\
+RB_UNUSED_PARAM; \
 VALUE ret = rb_ary_new(); \
 if (!shState->eThread().getControllerConnected()) {\
 rb_ary_push(ret, rb_float_new(0)); rb_ary_push(ret, rb_float_new(0)); \
@@ -371,7 +371,7 @@ AXISFUNC(Trigger, TRIGGERLEFT, TRIGGERRIGHT);
 #undef M_SYMBOL
 
 RB_METHOD(inputControllerPressEx) {
-    RB_UNUSED_PARAM;
+    RB_UNUSED_PARAM
     
     VALUE button;
     rb_scan_args(argc, argv, "1", &button);
@@ -385,7 +385,7 @@ RB_METHOD(inputControllerPressEx) {
 }
 
 RB_METHOD(inputControllerTriggerEx) {
-    RB_UNUSED_PARAM;
+    RB_UNUSED_PARAM
     
     VALUE button;
     rb_scan_args(argc, argv, "1", &button);
@@ -399,7 +399,7 @@ RB_METHOD(inputControllerTriggerEx) {
 }
 
 RB_METHOD(inputControllerRepeatEx) {
-    RB_UNUSED_PARAM;
+    RB_UNUSED_PARAM
     
     VALUE button;
     rb_scan_args(argc, argv, "1", &button);
@@ -413,7 +413,7 @@ RB_METHOD(inputControllerRepeatEx) {
 }
 
 RB_METHOD(inputControllerReleaseEx) {
-    RB_UNUSED_PARAM;
+    RB_UNUSED_PARAM
     
     VALUE button;
     rb_scan_args(argc, argv, "1", &button);
@@ -427,7 +427,7 @@ RB_METHOD(inputControllerReleaseEx) {
 }
 
 RB_METHOD(inputControllerCountEx) {
-    RB_UNUSED_PARAM;
+    RB_UNUSED_PARAM
     
     VALUE button;
     rb_scan_args(argc, argv, "1", &button);
@@ -441,7 +441,7 @@ RB_METHOD(inputControllerCountEx) {
 }
 
 RB_METHOD(inputControllerRepeatTimeEx) {
-    RB_UNUSED_PARAM;
+    RB_UNUSED_PARAM
     
     VALUE button;
     rb_scan_args(argc, argv, "1", &button);
@@ -455,7 +455,7 @@ RB_METHOD(inputControllerRepeatTimeEx) {
 }
 
 RB_METHOD(inputControllerRawButtonStates) {
-    RB_UNUSED_PARAM;
+    RB_UNUSED_PARAM
     
     VALUE ret = rb_ary_new();
     uint8_t *states = shState->input().rawButtonStates();
@@ -467,7 +467,7 @@ RB_METHOD(inputControllerRawButtonStates) {
 }
 
 RB_METHOD(inputControllerRawAxes) {
-    RB_UNUSED_PARAM;
+    RB_UNUSED_PARAM
     
     VALUE ret = rb_ary_new();
     int16_t *states = shState->input().rawAxes();
@@ -479,13 +479,13 @@ RB_METHOD(inputControllerRawAxes) {
 }
 
 RB_METHOD(inputGetMode) {
-    RB_UNUSED_PARAM;
+    RB_UNUSED_PARAM
     
     return rb_bool_new(shState->input().getTextInputMode());
 }
 
 RB_METHOD(inputSetMode) {
-    RB_UNUSED_PARAM;
+    RB_UNUSED_PARAM
     
     bool mode;
     rb_get_args(argc, argv, "b", &mode RB_ARG_END);
@@ -496,7 +496,7 @@ RB_METHOD(inputSetMode) {
 }
 
 RB_METHOD(inputGets) {
-    RB_UNUSED_PARAM;
+    RB_UNUSED_PARAM
     shState->eThread().lockText(true);
     VALUE ret = rb_utf8_str_new_cstr(shState->input().getText());
     shState->input().clearText();
@@ -505,7 +505,7 @@ RB_METHOD(inputGets) {
 }
 
 RB_METHOD(inputGetClipboard) {
-    RB_UNUSED_PARAM;
+    RB_UNUSED_PARAM
     VALUE ret;
     try {
         ret = rb_utf8_str_new_cstr(shState->input().getClipboardText());
@@ -516,7 +516,7 @@ RB_METHOD(inputGetClipboard) {
 }
 
 RB_METHOD(inputSetClipboard) {
-    RB_UNUSED_PARAM;
+    RB_UNUSED_PARAM
     
     VALUE str;
     rb_scan_args(argc, argv, "1", &str);

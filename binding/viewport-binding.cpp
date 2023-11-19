@@ -24,7 +24,6 @@
 #include "disposable-binding.h"
 #include "flashable-binding.h"
 #include "sceneelement-binding.h"
-#include "sharedstate.h"
 #include "viewport.h"
 
 #if RAPI_FULL > 187
@@ -38,7 +37,7 @@ RB_METHOD(viewportInitialize) {
     
     if (argc == 0 && rgssVer >= 3) {
         GFX_LOCK;
-        v = new Viewport();
+        v = initInstance<Viewport>();
     } else if (argc == 1) {
         /* The rect arg is only used to init the viewport,
          * and does NOT replace its 'rect' property */
@@ -50,13 +49,16 @@ RB_METHOD(viewportInitialize) {
         rect = getPrivateDataCheck<Rect>(rectObj, RectType);
         
         GFX_LOCK;
-        v = new Viewport(rect);
+        v = initInstance<Viewport>(rect);
     } else {
-        int x, y, width, height;
+        int x;
+        int y;
+        int width;
+        int height;
         
         rb_get_args(argc, argv, "iiii", &x, &y, &width, &height RB_ARG_END);
         GFX_LOCK;
-        v = new Viewport(x, y, width, height);
+        v = initInstance<Viewport>(x, y, width, height);
     }
     
     setPrivateData(self, v);
@@ -78,7 +80,7 @@ RB_METHOD(viewportInitialize) {
 
 RB_METHOD(viewportSpriteFinalize)
 {
-    RB_UNUSED_PARAM;
+    RB_UNUSED_PARAM
     
     VALUE objectid;
     
@@ -113,9 +115,9 @@ void viewportBindingInit() {
     _rb_define_method(klass, "initialize", viewportInitialize);
     _rb_define_method(klass, "_sprite_finalizer", viewportSpriteFinalize);
     
-    INIT_PROP_BIND(Viewport, Rect, "rect");
-    INIT_PROP_BIND(Viewport, OX, "ox");
-    INIT_PROP_BIND(Viewport, OY, "oy");
-    INIT_PROP_BIND(Viewport, Color, "color");
-    INIT_PROP_BIND(Viewport, Tone, "tone");
+    INIT_PROP_BIND(Viewport, Rect, "rect")
+    INIT_PROP_BIND(Viewport, OX, "ox")
+    INIT_PROP_BIND(Viewport, OY, "oy")
+    INIT_PROP_BIND(Viewport, Color, "color")
+    INIT_PROP_BIND(Viewport, Tone, "tone")
 }

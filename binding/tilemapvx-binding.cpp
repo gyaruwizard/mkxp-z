@@ -43,8 +43,8 @@ RB_METHOD(tilemapVXInitialize) {
     
     GFX_LOCK;
     /* Get parameters */
-    VALUE viewportObj = Qnil;
-    Viewport *viewport = 0;
+    auto viewportObj = Qnil;
+    Viewport *viewport = nullptr;
     
     rb_get_args(argc, argv, "|o", &viewportObj RB_ARG_END);
     
@@ -52,7 +52,7 @@ RB_METHOD(tilemapVXInitialize) {
         viewport = getPrivateDataCheck<Viewport>(viewportObj, ViewportType);
     
     /* Construct object */
-    t = new TilemapVX(viewport);
+    t = initInstance<TilemapVX>(viewport);
     
     setPrivateData(self, t);
     
@@ -78,7 +78,7 @@ RB_METHOD(tilemapVXInitialize) {
 }
 
 RB_METHOD(tilemapVXGetBitmapArray) {
-    RB_UNUSED_PARAM;
+    RB_UNUSED_PARAM
     
     checkDisposed<TilemapVX>(self);
     
@@ -86,7 +86,7 @@ RB_METHOD(tilemapVXGetBitmapArray) {
 }
 
 RB_METHOD(tilemapVXUpdate) {
-    RB_UNUSED_PARAM;
+    RB_UNUSED_PARAM
     
     TilemapVX *t = getPrivateData<TilemapVX>(self);
     
@@ -150,17 +150,17 @@ void tilemapVXBindingInit() {
     _rb_define_method(klass, "bitmaps", tilemapVXGetBitmapArray);
     _rb_define_method(klass, "update", tilemapVXUpdate);
     
-    INIT_PROP_BIND(TilemapVX, Viewport, "viewport");
-    INIT_PROP_BIND(TilemapVX, MapData, "map_data");
-    INIT_PROP_BIND(TilemapVX, FlashData, "flash_data");
-    INIT_PROP_BIND(TilemapVX, Visible, "visible");
-    INIT_PROP_BIND(TilemapVX, OX, "ox");
-    INIT_PROP_BIND(TilemapVX, OY, "oy");
+    INIT_PROP_BIND(TilemapVX, Viewport, "viewport")
+    INIT_PROP_BIND(TilemapVX, MapData, "map_data")
+    INIT_PROP_BIND(TilemapVX, FlashData, "flash_data")
+    INIT_PROP_BIND(TilemapVX, Visible, "visible")
+    INIT_PROP_BIND(TilemapVX, OX, "ox")
+    INIT_PROP_BIND(TilemapVX, OY, "oy")
     
     if (rgssVer == 3) {
-        INIT_PROP_BIND(TilemapVX, Flags, "flags");
+        INIT_PROP_BIND(TilemapVX, Flags, "flags")
     } else {
-        INIT_PROP_BIND(TilemapVX, Flags, "passages");
+        INIT_PROP_BIND(TilemapVX, Flags, "passages")
     }
     
     klass = rb_define_class_under(klass, "BitmapArray", rb_cObject);

@@ -28,13 +28,14 @@
 
 #include <string>
 #include <vector>
+#include <memory>
 
 struct SoundBuffer;
 struct Config;
 
 struct SoundEmitter
 {
-	typedef BoostHash<std::string, SoundBuffer*> BufferHash;
+	using BufferHash = BoostHash<std::string, std::shared_ptr<SoundBuffer>>;
 
 	IntruList<SoundBuffer> buffers;
 	BufferHash bufferHash;
@@ -44,12 +45,12 @@ struct SoundEmitter
 
 	const size_t srcCount;
 	std::vector<AL::Source::ID> alSrcs;
-	std::vector<SoundBuffer*> atchBufs;
+	std::vector<std::shared_ptr<SoundBuffer>> atchBufs;
 
 	/* Indices of sources, sorted by priority (lowest first) */
 	std::vector<size_t> srcPrio;
 
-	SoundEmitter(const Config &conf);
+    explicit SoundEmitter(const Config &conf);
 	~SoundEmitter();
 
 	void play(const std::string &filename,
@@ -59,7 +60,7 @@ struct SoundEmitter
 	void stop();
 
 private:
-	SoundBuffer *allocateBuffer(const std::string &filename);
+	std::shared_ptr<SoundBuffer> allocateBuffer(const std::string &filename);
 };
 
 #endif // SOUNDEMITTER_H

@@ -75,8 +75,8 @@ RB_METHOD(tilemapInitialize) {
     Tilemap *t;
     
     /* Get parameters */
-    VALUE viewportObj = Qnil;
-    Viewport *viewport = 0;
+    auto viewportObj = Qnil;
+    Viewport *viewport = nullptr;
     
     rb_get_args(argc, argv, "|o", &viewportObj RB_ARG_END);
     
@@ -85,7 +85,7 @@ RB_METHOD(tilemapInitialize) {
     
     GFX_LOCK;
     /* Construct object */
-    t = new Tilemap(viewport);
+    t = initInstance<Tilemap>(viewport);
     
     rb_iv_set(self, "viewport", viewportObj);
     
@@ -115,7 +115,7 @@ RB_METHOD(tilemapInitialize) {
 }
 
 RB_METHOD(tilemapGetAutotiles) {
-    RB_UNUSED_PARAM;
+    RB_UNUSED_PARAM
     
     checkDisposed<Tilemap>(self);
     
@@ -123,7 +123,7 @@ RB_METHOD(tilemapGetAutotiles) {
 }
 
 RB_METHOD(tilemapUpdate) {
-    RB_UNUSED_PARAM;
+    RB_UNUSED_PARAM
     
     Tilemap *t = getPrivateData<Tilemap>(self);
     
@@ -135,7 +135,7 @@ RB_METHOD(tilemapUpdate) {
 }
 
 RB_METHOD(tilemapGetViewport) {
-    RB_UNUSED_PARAM;
+    RB_UNUSED_PARAM
     
     checkDisposed<Tilemap>(self);
     
@@ -182,16 +182,16 @@ void tilemapBindingInit() {
     
     _rb_define_method(klass, "viewport", tilemapGetViewport);
     
-    INIT_PROP_BIND(Tilemap, Tileset, "tileset");
-    INIT_PROP_BIND(Tilemap, MapData, "map_data");
-    INIT_PROP_BIND(Tilemap, FlashData, "flash_data");
-    INIT_PROP_BIND(Tilemap, Priorities, "priorities");
-    INIT_PROP_BIND(Tilemap, Visible, "visible");
-    INIT_PROP_BIND(Tilemap, OX, "ox");
-    INIT_PROP_BIND(Tilemap, OY, "oy");
+    INIT_PROP_BIND(Tilemap, Tileset, "tileset")
+    INIT_PROP_BIND(Tilemap, MapData, "map_data")
+    INIT_PROP_BIND(Tilemap, FlashData, "flash_data")
+    INIT_PROP_BIND(Tilemap, Priorities, "priorities")
+    INIT_PROP_BIND(Tilemap, Visible, "visible")
+    INIT_PROP_BIND(Tilemap, OX, "ox")
+    INIT_PROP_BIND(Tilemap, OY, "oy")
     
-    INIT_PROP_BIND(Tilemap, Opacity, "opacity");
-    INIT_PROP_BIND(Tilemap, BlendType, "blend_type");
-    INIT_PROP_BIND(Tilemap, Color, "color");
-    INIT_PROP_BIND(Tilemap, Tone, "tone");
+    INIT_PROP_BIND(Tilemap, Opacity, "opacity")
+    INIT_PROP_BIND(Tilemap, BlendType, "blend_type")
+    INIT_PROP_BIND(Tilemap, Color, "color")
+    INIT_PROP_BIND(Tilemap, Tone, "tone")
 }

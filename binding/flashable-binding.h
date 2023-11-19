@@ -54,7 +54,7 @@ RB_METHOD(flashableFlash)
 template<class C>
 RB_METHOD(flashableUpdate)
 {
-	RB_UNUSED_PARAM;
+	RB_UNUSED_PARAM
 
 	Flashable *f = getPrivateData<C>(self);
 

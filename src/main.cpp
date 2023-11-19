@@ -132,26 +132,19 @@ std::unique_ptr<ALCcontext, void (*)(ALCcontext *)> startRgssThread(RGSSThreadDa
     RgssThreadManager::getInstance().lockRgssThread();
 #else
     int rgssThreadFun(void *userdata) {
-        RGSSThreadData *threadData = static_cast<RGSSThreadData *>(userdata);
+        auto *threadData = static_cast<RGSSThreadData *>(userdata);
 #endif
 
 #ifdef MKXPZ_INIT_GL_LATER
-    threadData->glContext =
-            initGL(threadData->window, threadData->config, threadData);
-    if (!threadData->glContext) {
-#ifdef MKXPZ_RUBY_GEM
-        RgssThreadManager::getInstance().unlockRgssThread();
-        throw std::system_error(std::error_code(), "RGSS failed to initialize!");
+  threadData->glContext.reset(initGL(threadData->window, threadData->config, threadData));
+  if (!threadData->glContext)
+    return 0;
 #else
-        return 0;
-#endif
-    }
-#else
-    SDL_GL_MakeCurrent(threadData->window, threadData->glContext);
+  SDL_GL_MakeCurrent(threadData->window, threadData->glContext.get());
 #endif
 
   /* Setup AL context */
-  std::unique_ptr<ALCcontext, void (*)(ALCcontext *)> alcCtx(alcCreateContext(threadData->alcDev, nullptr),
+  std::unique_ptr<ALCcontext, void (*)(ALCcontext *)> alcCtx(alcCreateContext(threadData->alcDev, 0),
                                                              &alcDestroyContext);
 
     if (!alcCtx)
@@ -449,7 +442,7 @@ int main(int argc, char *argv[]) {
 
 #ifdef MKXPZ_BUILD_XCODE
     // Create Touch Bar
-    initTouchBar(win, conf);
+    initTouchBar(win.get(), conf);
 #endif
 
 #ifdef MKXPZ_RUBY_GEM
@@ -498,9 +491,6 @@ int main(int argc, char *argv[]) {
       SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, conf.game.title.c_str(),
                                rtData.rgssErrorMsg.c_str(), win.get());
     }
-
-    if (rtData.glContext)
-        SDL_GL_DeleteContext(rtData.glContext);
 
     /* Clean up any remainin events */
     eventThread.cleanup();
