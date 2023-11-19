@@ -196,18 +196,18 @@ float ALStream::queryOffset()
 
 void ALStream::closeSource()
 {
-	delete source;
+	source = nullptr;
 }
 
 struct ALStreamOpenHandler : FileSystem::OpenHandler
 {
 	SDL_RWops *srcOps;
 	bool looped;
-	ALDataSource *source;
+	std::unique_ptr<ALDataSource> source;
 	std::string errorMsg;
 
 	ALStreamOpenHandler(SDL_RWops &srcOps, bool looped)
-	    : srcOps(&srcOps), looped(looped), source(0)
+	    : srcOps(&srcOps), looped(looped), source(nullptr)
 	{}
 
 	bool tryRead(SDL_RWops &ops, const char *ext)
@@ -217,19 +217,19 @@ struct ALStreamOpenHandler : FileSystem::OpenHandler
 		*srcOps = ops;
 
 		/* Try to read ogg file signature */
-		char sig[5] = { 0 };
-		SDL_RWread(srcOps, sig, 1, 4);
+		std::array<char, 5> sig = { 0 };
+		SDL_RWread(srcOps, sig.data(), 1, 4);
 		SDL_RWseek(srcOps, 0, RW_SEEK_SET);
 
 		try
 		{
-			if (!strcmp(sig, "OggS"))
+			if (!strcmp(sig.data(), "OggS"))
 			{
 				source = createVorbisSource(*srcOps, looped);
 				return true;
 			}
 
-			if (!strcmp(sig, "MThd"))
+			if (!strcmp(sig.data(), "MThd"))
 			{
 				shState->midiState().initIfNeeded(shState->config());
 
@@ -258,7 +258,7 @@ void ALStream::openSource(const std::string &filename)
 {
 	ALStreamOpenHandler handler(srcOps, looped);
 	shState->fileSystem().openRead(handler, filename.c_str());
-	source = handler.source;
+	source = std::move(handler.source);
 	needsRewind.clear();
 
 	if (!source)

@@ -27,10 +27,11 @@
 
 #include <string>
 #include <SDL_rwops.h>
+#include <memory>
 
 struct ALDataSource;
 
-#define STREAM_BUFS 3
+constexpr int STREAM_BUFS = 3;
 
 /* State-machine like audio playback stream.
  * This class is NOT thread safe */
@@ -47,7 +48,7 @@ struct ALStream
 	bool looped;
 	State state;
 
-	ALDataSource *source;
+	std::unique_ptr<ALDataSource> source;
 	SDL_Thread *thread;
 
 	std::string threadName;
@@ -69,7 +70,7 @@ struct ALStream
 	float pitch;
 
 	AL::Source::ID alSrc;
-	AL::Buffer::ID alBuf[STREAM_BUFS];
+	std::array<AL::Buffer::ID, STREAM_BUFS> alBuf;
 
 	uint64_t procFrames;
 	AL::Buffer::ID lastBuf;

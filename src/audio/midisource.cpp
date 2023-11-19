@@ -916,8 +916,8 @@ struct MidiSource : ALDataSource, MidiReadHandler
 	}
 };
 
-ALDataSource *createMidiSource(SDL_RWops &ops,
-                               bool looped)
+std::unique_ptr<ALDataSource> createMidiSource(SDL_RWops &ops,
+                                               bool looped)
 {
-	return new MidiSource(ops, looped);
+	return std::make_unique<MidiSource>(ops, looped);
 }
