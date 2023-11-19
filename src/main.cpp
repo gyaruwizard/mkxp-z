@@ -358,7 +358,7 @@ int main(int argc, char *argv[]) {
     /* OSX and Windows have their own native ways of
      * dealing with icons; don't interfere with them */
 #ifdef __LINUX__
-    setupWindowIcon(conf, win);
+    setupWindowIcon(conf, win.get());
 #else
     (void)setupWindowIcon;
 #endif
