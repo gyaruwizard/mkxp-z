@@ -190,6 +190,11 @@ template <rb_data_type_t *rbType> static VALUE classAllocate(VALUE klass) {
 }
 #endif
 
+// Used as a memory management wrapper to shut up static analyzers
+template <class C, typename... Args> static C* initInstance(Args... args) {
+    return new C(args...);
+}
+
 template <class C> static void freeInstance(void *inst) {
     delete static_cast<C *>(inst);
 }
@@ -338,7 +343,7 @@ static inline VALUE objectLoad(int argc, VALUE *argv, VALUE self) {
     
     C *c = 0;
     
-    GUARD_EXC(c = C::deserialize(data, dataLen););
+    GUARD_EXC(c = C::deserialize(data, dataLen);)
     
     setPrivateData(obj, c);
     
@@ -458,11 +463,11 @@ return self;                                                               \
 #if RAPI_FULL > 187
 #define DEF_PROP_OBJ_REF(Klass, PropKlass, PropName, prop_iv)                  \
 RB_METHOD(Klass##Get##PropName) {                                            \
-RB_UNUSED_PARAM;                                                           \
+RB_UNUSED_PARAM                                                           \
 return rb_iv_get(self, prop_iv);                                           \
 }                                                                            \
 RB_METHOD(Klass##Set##PropName) {                                            \
-RB_UNUSED_PARAM;                                                           \
+RB_UNUSED_PARAM                                                           \
 rb_check_argc(argc, 1);                                                    \
 Klass *k = getPrivateData<Klass>(self);                                    \
 VALUE propObj = *argv;                                                     \
@@ -478,11 +483,11 @@ return propObj;                                                            \
 #else
 #define DEF_PROP_OBJ_REF(Klass, PropKlass, PropName, prop_iv)                  \
 RB_METHOD(Klass##Get##PropName) {                                            \
-RB_UNUSED_PARAM;                                                           \
+RB_UNUSED_PARAM                                                           \
 return rb_iv_get(self, prop_iv);                                           \
 }                                                                            \
 RB_METHOD(Klass##Set##PropName) {                                            \
-RB_UNUSED_PARAM;                                                           \
+RB_UNUSED_PARAM                                                           \
 rb_check_argc(argc, 1);                                                    \
 Klass *k = getPrivateData<Klass>(self);                                    \
 VALUE propObj = *argv;                                                     \
@@ -501,7 +506,7 @@ return propObj;                                                            \
 #if RAPI_FULL > 187
 #define DEF_PROP_OBJ_VAL(Klass, PropKlass, PropName, prop_iv)                  \
 RB_METHOD(Klass##Get##PropName) {                                            \
-RB_UNUSED_PARAM;                                                           \
+RB_UNUSED_PARAM                                                           \
 checkDisposed<Klass>(self);                                                \
 return rb_iv_get(self, prop_iv);                                           \
 }                                                                            \
@@ -517,7 +522,7 @@ return propObj;                                                            \
 #else
 #define DEF_PROP_OBJ_VAL(Klass, PropKlass, PropName, prop_iv)                  \
 RB_METHOD(Klass##Get##PropName) {                                            \
-RB_UNUSED_PARAM;                                                           \
+RB_UNUSED_PARAM                                                           \
 checkDisposed<Klass>(self);                                                \
 return rb_iv_get(self, prop_iv);                                           \
 }                                                                            \
@@ -534,7 +539,7 @@ return propObj;                                                            \
 
 #define DEF_PROP(Klass, type, PropName, arg_fun, value_fun)                    \
 RB_METHOD(Klass##Get##PropName) {                                            \
-RB_UNUSED_PARAM;                                                           \
+RB_UNUSED_PARAM                                                           \
 Klass *k = getPrivateData<Klass>(self);                                    \
 type value = 0;                                                            \
 GUARD_EXC(value = k->get##PropName();)                                     \
@@ -570,11 +575,11 @@ _rb_define_method(klass, prop_name_s "=", Klass##Set##PropName);           \
 #if RAPI_FULL > 187
 #define DEF_GFX_PROP_OBJ_REF(Klass, PropKlass, PropName, prop_iv)                  \
 RB_METHOD(Klass##Get##PropName) {                                            \
-RB_UNUSED_PARAM;                                                           \
+RB_UNUSED_PARAM                                                           \
 return rb_iv_get(self, prop_iv);                                           \
 }                                                                            \
 RB_METHOD(Klass##Set##PropName) {                                            \
-RB_UNUSED_PARAM;                                                           \
+RB_UNUSED_PARAM                                                           \
 rb_check_argc(argc, 1);                                                    \
 Klass *k = getPrivateData<Klass>(self);                                    \
 VALUE propObj = *argv;                                                     \
@@ -596,7 +601,7 @@ DEF_PROP_OBJ_REF(Klass, PropKlass, PropName, prop_iv)
 #if RAPI_FULL > 187
 #define DEF_GFX_PROP_OBJ_VAL(Klass, PropKlass, PropName, prop_iv)                  \
 RB_METHOD(Klass##Get##PropName) {                                            \
-RB_UNUSED_PARAM;                                                           \
+RB_UNUSED_PARAM                                                           \
 checkDisposed<Klass>(self);                                                \
 return rb_iv_get(self, prop_iv);                                           \
 }                                                                            \
@@ -616,7 +621,7 @@ DEF_PROP_OBJ_VAL(Klass, PropKlass, PropName, prop_iv)
 
 #define DEF_GFX_PROP(Klass, type, PropName, arg_fun, value_fun)                    \
 RB_METHOD(Klass##Get##PropName) {                                            \
-RB_UNUSED_PARAM;                                                           \
+RB_UNUSED_PARAM                                                           \
 Klass *k = getPrivateData<Klass>(self);                                    \
 type value = 0;                                                            \
 GUARD_EXC(value = k->get##PropName();)                                     \

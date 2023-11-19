@@ -43,7 +43,7 @@ void bitmapInitProps(Bitmap *b, VALUE self) {
     /* Wrap properties */
     VALUE fontKlass = rb_const_get(rb_cObject, rb_intern("Font"));
     VALUE fontObj = rb_obj_alloc(fontKlass);
-    rb_obj_call_init(fontObj, 0, 0);
+    rb_obj_call_init(fontObj, 0, nullptr);
     
     Font *font = getPrivateData<Font>(fontObj);
     b->setInitFont(font);
@@ -58,18 +58,19 @@ void bitmapInitProps(Bitmap *b, VALUE self) {
 }
 
 RB_METHOD(bitmapInitialize) {
-    Bitmap *b = 0;
+    Bitmap *b;
     
     if (argc == 1) {
         char *filename;
         rb_get_args(argc, argv, "z", &filename RB_ARG_END);
         
-        GFX_GUARD_EXC(b = new Bitmap(filename);)
+        GFX_GUARD_EXC(b = initInstance<Bitmap>(filename);)
     } else {
-        int width, height;
+        int height;
+        int width;
         rb_get_args(argc, argv, "ii", &width, &height RB_ARG_END);
         
-        GFX_GUARD_EXC(b = new Bitmap(width, height);)
+        GFX_GUARD_EXC(b = initInstance<Bitmap>(width, height);)
     }
     
     setPrivateData(self, b);
@@ -79,23 +80,23 @@ RB_METHOD(bitmapInitialize) {
 }
 
 RB_METHOD(bitmapWidth) {
-    RB_UNUSED_PARAM;
+    RB_UNUSED_PARAM
     
-    Bitmap *b = getPrivateData<Bitmap>(self);
+    const Bitmap *b = getPrivateData<Bitmap>(self);
     
     int value = 0;
-    GUARD_EXC(value = b->width(););
+    GUARD_EXC(value = b->width();)
     
     return INT2FIX(value);
 }
 
 RB_METHOD(bitmapHeight) {
-    RB_UNUSED_PARAM;
+    RB_UNUSED_PARAM
     
-    Bitmap *b = getPrivateData<Bitmap>(self);
+    const Bitmap *b = getPrivateData<Bitmap>(self);
     
     int value = 0;
-    GUARD_EXC(value = b->height(););
+    GUARD_EXC(value = b->height();)
     
     return INT2FIX(value);
 }
@@ -103,14 +104,14 @@ RB_METHOD(bitmapHeight) {
 DEF_GFX_PROP_OBJ_REF(Bitmap, Bitmap, Hires, "hires")
 
 RB_METHOD(bitmapRect) {
-    RB_UNUSED_PARAM;
+    RB_UNUSED_PARAM
     
-    Bitmap *b = getPrivateData<Bitmap>(self);
+    const Bitmap *b = getPrivateData<Bitmap>(self);
     
     IntRect rect;
-    GUARD_EXC(rect = b->rect(););
+    GUARD_EXC(rect = b->rect();)
     
-    Rect *r = new Rect(rect);
+    auto r = initInstance<Rect>(rect);
     
     return wrapObject(r, RectType);
 }
@@ -118,12 +119,13 @@ RB_METHOD(bitmapRect) {
 RB_METHOD(bitmapBlt) {
     Bitmap *b = getPrivateData<Bitmap>(self);
     
-    int x, y;
+    int x;
+    int y;
     VALUE srcObj;
     VALUE srcRectObj;
     int opacity = 255;
     
-    Bitmap *src;
+    const Bitmap *src;
     Rect *srcRect;
     
     rb_get_args(argc, argv, "iioo|i", &x, &y, &srcObj, &srcRectObj,
@@ -132,7 +134,7 @@ RB_METHOD(bitmapBlt) {
     src = getPrivateDataCheck<Bitmap>(srcObj, BitmapType);
     srcRect = getPrivateDataCheck<Rect>(srcRectObj, RectType);
     
-    GFX_GUARD_EXC(b->blt(x, y, *src, srcRect->toIntRect(), opacity););
+    GFX_GUARD_EXC(b->blt(x, y, *src, srcRect->toIntRect(), opacity);)
     
     return self;
 }
@@ -145,9 +147,10 @@ RB_METHOD(bitmapStretchBlt) {
     VALUE srcRectObj;
     int opacity = 255;
     
-    Bitmap *src;
-    Rect *destRect, *srcRect;
-    
+    const Bitmap *src;
+    Rect *srcRect;
+    Rect *destRect;
+
     rb_get_args(argc, argv, "ooo|i", &destRectObj, &srcObj, &srcRectObj,
                 &opacity RB_ARG_END);
     
@@ -156,7 +159,7 @@ RB_METHOD(bitmapStretchBlt) {
     srcRect = getPrivateDataCheck<Rect>(srcRectObj, RectType);
     
     GFX_GUARD_EXC(b->stretchBlt(destRect->toIntRect(), *src, srcRect->toIntRect(),
-                            opacity););
+                            opacity);)
     
     return self;
 }
@@ -165,7 +168,7 @@ RB_METHOD(bitmapFillRect) {
     Bitmap *b = getPrivateData<Bitmap>(self);
     
     VALUE colorObj;
-    Color *color;
+    const Color *color;
     
     if (argc == 2) {
         VALUE rectObj;
@@ -176,23 +179,26 @@ RB_METHOD(bitmapFillRect) {
         rect = getPrivateDataCheck<Rect>(rectObj, RectType);
         color = getPrivateDataCheck<Color>(colorObj, ColorType);
         
-        GFX_GUARD_EXC(b->fillRect(rect->toIntRect(), color->norm););
+        GFX_GUARD_EXC(b->fillRect(rect->toIntRect(), color->norm);)
     } else {
-        int x, y, width, height;
+        int x;
+        int y;
+        int width;
+        int height;
         
         rb_get_args(argc, argv, "iiiio", &x, &y, &width, &height,
                     &colorObj RB_ARG_END);
         
         color = getPrivateDataCheck<Color>(colorObj, ColorType);
         
-        GFX_GUARD_EXC(b->fillRect(x, y, width, height, color->norm););
+        GFX_GUARD_EXC(b->fillRect(x, y, width, height, color->norm);)
     }
     
     return self;
 }
 
 RB_METHOD(bitmapClear) {
-    RB_UNUSED_PARAM;
+    RB_UNUSED_PARAM
     
     Bitmap *b = getPrivateData<Bitmap>(self);
 
@@ -202,16 +208,17 @@ RB_METHOD(bitmapClear) {
 }
 
 RB_METHOD(bitmapGetPixel) {
-    Bitmap *b = getPrivateData<Bitmap>(self);
+    const Bitmap *b = getPrivateData<Bitmap>(self);
     
-    int x, y;
-    
+    int x;
+    int y;
+
     rb_get_args(argc, argv, "ii", &x, &y RB_ARG_END);
     
     Color value;
-    GUARD_EXC(value = b->getPixel(x, y););
+    GUARD_EXC(value = b->getPixel(x, y);)
     
-    Color *color = new Color(value);
+    auto color = initInstance<Color>(value);
     
     return wrapObject(color, ColorType);
 }
@@ -219,16 +226,17 @@ RB_METHOD(bitmapGetPixel) {
 RB_METHOD(bitmapSetPixel) {
     Bitmap *b = getPrivateData<Bitmap>(self);
     
-    int x, y;
+    int x;
+    int y;
     VALUE colorObj;
     
-    Color *color;
+    const Color *color;
     
     rb_get_args(argc, argv, "iio", &x, &y, &colorObj RB_ARG_END);
     
     color = getPrivateDataCheck<Color>(colorObj, ColorType);
     
-    GFX_GUARD_EXC(b->setPixel(x, y, *color););
+    GFX_GUARD_EXC(b->setPixel(x, y, *color);)
     
     return self;
 }
@@ -240,7 +248,7 @@ RB_METHOD(bitmapHueChange) {
     
     rb_get_args(argc, argv, "i", &hue RB_ARG_END);
     
-    GFX_GUARD_EXC(b->hueChange(hue););
+    GFX_GUARD_EXC(b->hueChange(hue);)
     
     return self;
 }
@@ -266,9 +274,12 @@ RB_METHOD(bitmapDrawText) {
         
         rect = getPrivateDataCheck<Rect>(rectObj, RectType);
         
-        GFX_GUARD_EXC(b->drawText(rect->toIntRect(), str, align););
+        GFX_GUARD_EXC(b->drawText(rect->toIntRect(), str, align);)
     } else {
-        int x, y, width, height;
+        int x;
+        int y;
+        int width;
+        int height;
         
         if (rgssVer >= 2) {
             VALUE strObj;
@@ -281,7 +292,7 @@ RB_METHOD(bitmapDrawText) {
                         &align RB_ARG_END);
         }
         
-        GFX_GUARD_EXC(b->drawText(x, y, width, height, str, align););
+        GFX_GUARD_EXC(b->drawText(x, y, width, height, str, align);)
     }
     
     return self;
@@ -302,9 +313,9 @@ RB_METHOD(bitmapTextSize) {
     }
     
     IntRect value;
-    GUARD_EXC(value = b->textSize(str););
+    GUARD_EXC(value = b->textSize(str);)
     
-    Rect *rect = new Rect(value);
+    auto rect = initInstance<Rect>(value);
     
     return wrapObject(rect, RectType);
 }
@@ -314,8 +325,10 @@ DEF_GFX_PROP_OBJ_VAL(Bitmap, Font, Font, "font")
 RB_METHOD(bitmapGradientFillRect) {
     Bitmap *b = getPrivateData<Bitmap>(self);
     
-    VALUE color1Obj, color2Obj;
-    Color *color1, *color2;
+    VALUE color1Obj;
+    VALUE color2Obj;
+    const Color *color2;
+    const Color *color1;
     bool vertical = false;
     
     if (argc == 3 || argc == 4) {
@@ -330,9 +343,12 @@ RB_METHOD(bitmapGradientFillRect) {
         color2 = getPrivateDataCheck<Color>(color2Obj, ColorType);
         
         GFX_GUARD_EXC(b->gradientFillRect(rect->toIntRect(), color1->norm, color2->norm,
-                                      vertical););
+                                      vertical);)
     } else {
-        int x, y, width, height;
+        int x;
+        int y;
+        int width;
+        int height;
         
         rb_get_args(argc, argv, "iiiioo|b", &x, &y, &width, &height, &color1Obj,
                     &color2Obj, &vertical RB_ARG_END);
@@ -341,7 +357,7 @@ RB_METHOD(bitmapGradientFillRect) {
         color2 = getPrivateDataCheck<Color>(color2Obj, ColorType);
         
         GFX_GUARD_EXC(b->gradientFillRect(x, y, width, height, color1->norm,
-                                      color2->norm, vertical););
+                                      color2->norm, vertical);)
     }
     
     return self;
@@ -358,20 +374,23 @@ RB_METHOD(bitmapClearRect) {
         
         rect = getPrivateDataCheck<Rect>(rectObj, RectType);
         
-        GFX_GUARD_EXC(b->clearRect(rect->toIntRect()););
+        GFX_GUARD_EXC(b->clearRect(rect->toIntRect());)
     } else {
-        int x, y, width, height;
-        
+        int x;
+        int y;
+        int width;
+        int height;
+
         rb_get_args(argc, argv, "iiii", &x, &y, &width, &height RB_ARG_END);
         
-        GFX_GUARD_EXC(b->clearRect(x, y, width, height););
+        GFX_GUARD_EXC(b->clearRect(x, y, width, height);)
     }
     
     return self;
 }
 
 RB_METHOD(bitmapBlur) {
-    RB_UNUSED_PARAM;
+    RB_UNUSED_PARAM
     
     Bitmap *b = getPrivateData<Bitmap>(self);
     
@@ -385,7 +404,8 @@ RB_METHOD(bitmapBlur) {
 RB_METHOD(bitmapRadialBlur) {
     Bitmap *b = getPrivateData<Bitmap>(self);
     
-    int angle, divisions;
+    int angle;
+    int divisions;
     rb_get_args(argc, argv, "ii", &angle, &divisions RB_ARG_END);
     
     GFX_LOCK;
@@ -396,19 +416,19 @@ RB_METHOD(bitmapRadialBlur) {
 }
 
 RB_METHOD(bitmapGetRawData) {
-    RB_UNUSED_PARAM;
+    RB_UNUSED_PARAM
     
     Bitmap *b = getPrivateData<Bitmap>(self);
     int size = b->width() * b->height() * 4;
     VALUE ret = rb_str_new(0, size);
     
-    GFX_GUARD_EXC(b->getRaw(RSTRING_PTR(ret), size););
+    GFX_GUARD_EXC(b->getRaw(RSTRING_PTR(ret), size);)
     
     return ret;
 }
 
 RB_METHOD(bitmapSetRawData) {
-    RB_UNUSED_PARAM;
+    RB_UNUSED_PARAM
     
     VALUE str;
     rb_scan_args(argc, argv, "1", &str);
@@ -416,13 +436,13 @@ RB_METHOD(bitmapSetRawData) {
     
     Bitmap *b = getPrivateData<Bitmap>(self);
     
-    GFX_GUARD_EXC(b->replaceRaw(RSTRING_PTR(str), RSTRING_LEN(str)););
+    GFX_GUARD_EXC(b->replaceRaw(RSTRING_PTR(str), RSTRING_LEN(str));)
     
     return self;
 }
 
 RB_METHOD(bitmapSaveToFile) {
-    RB_UNUSED_PARAM;
+    RB_UNUSED_PARAM
     
     VALUE str;
     rb_scan_args(argc, argv, "1", &str);
@@ -430,51 +450,51 @@ RB_METHOD(bitmapSaveToFile) {
     
     Bitmap *b = getPrivateData<Bitmap>(self);
     
-    GFX_GUARD_EXC(b->saveToFile(RSTRING_PTR(str)););
+    GFX_GUARD_EXC(b->saveToFile(RSTRING_PTR(str));)
     
     return RUBY_Qnil;
 }
 
 RB_METHOD(bitmapGetMega){
-    RB_UNUSED_PARAM;
+    RB_UNUSED_PARAM
     
     rb_check_argc(argc, 0);
     
-    Bitmap *b = getPrivateData<Bitmap>(self);
+    const Bitmap *b = getPrivateData<Bitmap>(self);
     
     VALUE ret;
     
-    GFX_GUARD_EXC(ret = rb_bool_new(b->isMega()););
+    GFX_GUARD_EXC(ret = rb_bool_new(b->isMega());)
     
     return ret;
 }
 
 RB_METHOD(bitmapGetAnimated){
-    RB_UNUSED_PARAM;
+    RB_UNUSED_PARAM
     
     rb_check_argc(argc, 0);
     
-    Bitmap *b = getPrivateData<Bitmap>(self);
+    const Bitmap *b = getPrivateData<Bitmap>(self);
     
     VALUE ret;
     
-    GFX_GUARD_EXC(ret = rb_bool_new(b->isAnimated()););
+    GFX_GUARD_EXC(ret = rb_bool_new(b->isAnimated());)
     
     return ret;
 }
 
 RB_METHOD(bitmapGetPlaying){
-    RB_UNUSED_PARAM;
+    RB_UNUSED_PARAM
     
     rb_check_argc(argc, 0);
     
-    Bitmap *b = getPrivateData<Bitmap>(self);
+    const Bitmap *b = getPrivateData<Bitmap>(self);
     
     return rb_bool_new(b->isPlaying());
 }
 
 RB_METHOD(bitmapSetPlaying){
-    RB_UNUSED_PARAM;
+    RB_UNUSED_PARAM
     
     bool play;
     
@@ -482,35 +502,35 @@ RB_METHOD(bitmapSetPlaying){
     
     Bitmap *b = getPrivateData<Bitmap>(self);
     
-    GFX_GUARD_EXC((play) ? b->play() : b->stop(););
+    GFX_GUARD_EXC((play) ? b->play() : b->stop();)
     
     return RUBY_Qnil;
 }
 
 RB_METHOD(bitmapPlay){
-    RB_UNUSED_PARAM;
+    RB_UNUSED_PARAM
     
     rb_check_argc(argc, 0);
     Bitmap *b = getPrivateData<Bitmap>(self);
     
-    GFX_GUARD_EXC(b->play(););
+    GFX_GUARD_EXC(b->play();)
     
     return RUBY_Qnil;
 }
 
 RB_METHOD(bitmapStop){
-    RB_UNUSED_PARAM;
+    RB_UNUSED_PARAM
     
     rb_check_argc(argc, 0);
     Bitmap *b = getPrivateData<Bitmap>(self);
     
-    GFX_GUARD_EXC(b->stop(););
+    GFX_GUARD_EXC(b->stop();)
     
     return RUBY_Qnil;
 }
 
 RB_METHOD(bitmapGotoStop){
-    RB_UNUSED_PARAM;
+    RB_UNUSED_PARAM
     
     int frame;
     
@@ -518,13 +538,13 @@ RB_METHOD(bitmapGotoStop){
     
     Bitmap *b = getPrivateData<Bitmap>(self);
     
-    GFX_GUARD_EXC(b->gotoAndStop(frame););
+    GFX_GUARD_EXC(b->gotoAndStop(frame);)
     
     return RUBY_Qnil;
 }
 
 RB_METHOD(bitmapGotoPlay){
-    RB_UNUSED_PARAM;
+    RB_UNUSED_PARAM
     
     int frame;
     
@@ -532,33 +552,33 @@ RB_METHOD(bitmapGotoPlay){
     
     Bitmap *b = getPrivateData<Bitmap>(self);
     
-    GFX_GUARD_EXC(b->gotoAndPlay(frame););
+    GFX_GUARD_EXC(b->gotoAndPlay(frame);)
     
     return RUBY_Qnil;
 }
 
 RB_METHOD(bitmapFrames){
-    RB_UNUSED_PARAM;
+    RB_UNUSED_PARAM
     
     rb_check_argc(argc, 0);
     
-    Bitmap *b = getPrivateData<Bitmap>(self);
+    const Bitmap *b = getPrivateData<Bitmap>(self);
     
     return INT2NUM(b->numFrames());
 }
 
 RB_METHOD(bitmapCurrentFrame){
-    RB_UNUSED_PARAM;
+    RB_UNUSED_PARAM
     
     rb_check_argc(argc, 0);
     
-    Bitmap *b = getPrivateData<Bitmap>(self);
+    const Bitmap *b = getPrivateData<Bitmap>(self);
     
     return INT2NUM(b->currentFrameI());
 }
 
 RB_METHOD(bitmapAddFrame){
-    RB_UNUSED_PARAM;
+    RB_UNUSED_PARAM
     
     VALUE srcBitmap;
     VALUE position;
@@ -577,13 +597,13 @@ RB_METHOD(bitmapAddFrame){
     
     int ret;
     
-    GFX_GUARD_EXC(ret = b->addFrame(*src, pos););
+    GFX_GUARD_EXC(ret = b->addFrame(*src, pos);)
     
     return INT2NUM(ret);
 }
 
 RB_METHOD(bitmapRemoveFrame){
-    RB_UNUSED_PARAM;
+    RB_UNUSED_PARAM
     
     VALUE position;
     
@@ -597,37 +617,37 @@ RB_METHOD(bitmapRemoveFrame){
         if (pos < 0) pos = 0;
     }
     
-    GFX_GUARD_EXC(b->removeFrame(pos););
+    GFX_GUARD_EXC(b->removeFrame(pos);)
     
     return RUBY_Qnil;
 }
 
 RB_METHOD(bitmapNextFrame){
-    RB_UNUSED_PARAM;
+    RB_UNUSED_PARAM
     
     rb_check_argc(argc, 0);
     
     Bitmap *b = getPrivateData<Bitmap>(self);
     
-    GFX_GUARD_EXC(b->nextFrame(););
+    GFX_GUARD_EXC(b->nextFrame();)
     
     return INT2NUM(b->currentFrameI());
 }
 
 RB_METHOD(bitmapPreviousFrame){
-    RB_UNUSED_PARAM;
+    RB_UNUSED_PARAM
     
     rb_check_argc(argc, 0);
     
     Bitmap *b = getPrivateData<Bitmap>(self);
     
-    GFX_GUARD_EXC(b->previousFrame(););
+    GFX_GUARD_EXC(b->previousFrame();)
     
     return INT2NUM(b->currentFrameI());
 }
 
 RB_METHOD(bitmapSetFPS){
-    RB_UNUSED_PARAM;
+    RB_UNUSED_PARAM
     
     VALUE fps;
     rb_scan_args(argc, argv, "1", &fps);
@@ -641,63 +661,63 @@ RB_METHOD(bitmapSetFPS){
               else {
         b->setAnimationFPS(NUM2INT(fps));
     }
-              );
+              )
     
     return RUBY_Qnil;
 }
 
 RB_METHOD(bitmapGetFPS){
-    RB_UNUSED_PARAM;
+    RB_UNUSED_PARAM
     
     rb_check_argc(argc, 0);
     
-    Bitmap *b = getPrivateData<Bitmap>(self);
+    const Bitmap *b = getPrivateData<Bitmap>(self);
     
     float ret;
     
-    GUARD_EXC(ret = b->getAnimationFPS(););
+    GUARD_EXC(ret = b->getAnimationFPS();)
     
     return rb_float_new(ret);
 }
 
 RB_METHOD(bitmapSetLooping){
-    RB_UNUSED_PARAM;
+    RB_UNUSED_PARAM
     
     bool loop;
     rb_get_args(argc, argv, "b", &loop RB_ARG_END);
     
     Bitmap *b = getPrivateData<Bitmap>(self);
     
-    GFX_GUARD_EXC(b->setLooping(loop););
+    GFX_GUARD_EXC(b->setLooping(loop);)
     
     return rb_bool_new(loop);
 }
 
 RB_METHOD(bitmapGetLooping){
-    RB_UNUSED_PARAM;
+    RB_UNUSED_PARAM
     
     rb_check_argc(argc, 0);
     
-    Bitmap *b = getPrivateData<Bitmap>(self);
+    const Bitmap *b = getPrivateData<Bitmap>(self);
     
     bool ret;
-    GUARD_EXC(ret = b->getLooping(););
+    GUARD_EXC(ret = b->getLooping();)
     return rb_bool_new(ret);
 }
 
 // Captures the Bitmap's current frame data to a new Bitmap
 RB_METHOD(bitmapSnapToBitmap) {
-    RB_UNUSED_PARAM;
+    RB_UNUSED_PARAM
     
     VALUE position;
     rb_scan_args(argc, argv, "01", &position);
     
-    Bitmap *b = getPrivateData<Bitmap>(self);
+    const Bitmap *b = getPrivateData<Bitmap>(self);
     
-    Bitmap *newbitmap = 0;
+    Bitmap *newbitmap;
     int pos = (position == RUBY_Qnil) ? -1 : NUM2INT(position);
     
-    GFX_GUARD_EXC(newbitmap = new Bitmap(*b, pos););
+    GFX_GUARD_EXC(newbitmap = initInstance<Bitmap>(*b, pos);)
     
     VALUE ret = rb_obj_alloc(rb_class_of(self));
     
@@ -708,7 +728,7 @@ RB_METHOD(bitmapSnapToBitmap) {
 }
 
 RB_METHOD(bitmapGetMaxSize){
-    RB_UNUSED_PARAM;
+    RB_UNUSED_PARAM
     
     rb_check_argc(argc, 0);
     
@@ -722,10 +742,10 @@ RB_METHOD(bitmapInitializeCopy) {
     if (!OBJ_INIT_COPY(self, origObj))
         return self;
     
-    Bitmap *orig = getPrivateData<Bitmap>(origObj);
-    Bitmap *b = 0;
+    const Bitmap *orig = getPrivateData<Bitmap>(origObj);
+    Bitmap *b;
     
-    GFX_GUARD_EXC(b = new Bitmap(*orig););
+    GFX_GUARD_EXC(b = initInstance<Bitmap>(*orig);)
     
     bitmapInitProps(b, self);
     b->setFont(orig->getFont());
@@ -750,7 +770,7 @@ void bitmapBindingInit() {
     _rb_define_method(klass, "width", bitmapWidth);
     _rb_define_method(klass, "height", bitmapHeight);
 
-    INIT_PROP_BIND(Bitmap, Hires, "hires");
+    INIT_PROP_BIND(Bitmap, Hires, "hires")
 
     _rb_define_method(klass, "rect", bitmapRect);
     _rb_define_method(klass, "blt", bitmapBlt);
@@ -794,5 +814,5 @@ void bitmapBindingInit() {
     _rb_define_method(klass, "looping=", bitmapSetLooping);
     _rb_define_method(klass, "snap_to_bitmap", bitmapSnapToBitmap);
     
-    INIT_PROP_BIND(Bitmap, Font, "font");
+    INIT_PROP_BIND(Bitmap, Font, "font")
 }

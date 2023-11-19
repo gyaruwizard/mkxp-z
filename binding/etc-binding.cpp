@@ -152,14 +152,14 @@ SET_FUN(Tone, double, "fff|f", 0)
 SET_FUN(Rect, int, "iiii", 0)
 
 RB_METHOD(rectEmpty) {
-  RB_UNUSED_PARAM;
+  RB_UNUSED_PARAM
   Rect *r = getPrivateData<Rect>(self);
   r->empty();
   return self;
 }
 
 RB_METHOD(ColorStringify) {
-  RB_UNUSED_PARAM;
+  RB_UNUSED_PARAM
 
   Color *c = getPrivateData<Color>(self);
 #if RAPI_FULL > 187
@@ -173,7 +173,7 @@ RB_METHOD(ColorStringify) {
 }
 
 RB_METHOD(ToneStringify) {
-  RB_UNUSED_PARAM;
+  RB_UNUSED_PARAM
 
   Tone *t = getPrivateData<Tone>(self);
 
@@ -187,7 +187,7 @@ RB_METHOD(ToneStringify) {
 }
 
 RB_METHOD(RectStringify) {
-  RB_UNUSED_PARAM;
+  RB_UNUSED_PARAM
 
   Rect *r = getPrivateData<Rect>(self);
 

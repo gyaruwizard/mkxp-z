@@ -45,11 +45,11 @@ RB_METHOD(windowInitialize) {
 }
 
 RB_METHOD(windowUpdate) {
-    RB_UNUSED_PARAM;
+    RB_UNUSED_PARAM
     
     Window *w = getPrivateData<Window>(self);
     
-    GFX_GUARD_EXC(w->update(););
+    GFX_GUARD_EXC(w->update();)
     
     return Qnil;
 }
@@ -86,19 +86,19 @@ void windowBindingInit() {
     _rb_define_method(klass, "initialize", windowInitialize);
     _rb_define_method(klass, "update", windowUpdate);
     
-    INIT_PROP_BIND(Window, Windowskin, "windowskin");
-    INIT_PROP_BIND(Window, Contents, "contents");
-    INIT_PROP_BIND(Window, Stretch, "stretch");
-    INIT_PROP_BIND(Window, CursorRect, "cursor_rect");
-    INIT_PROP_BIND(Window, Active, "active");
-    INIT_PROP_BIND(Window, Pause, "pause");
-    INIT_PROP_BIND(Window, X, "x");
-    INIT_PROP_BIND(Window, Y, "y");
-    INIT_PROP_BIND(Window, Width, "width");
-    INIT_PROP_BIND(Window, Height, "height");
-    INIT_PROP_BIND(Window, OX, "ox");
-    INIT_PROP_BIND(Window, OY, "oy");
-    INIT_PROP_BIND(Window, Opacity, "opacity");
-    INIT_PROP_BIND(Window, BackOpacity, "back_opacity");
-    INIT_PROP_BIND(Window, ContentsOpacity, "contents_opacity");
+    INIT_PROP_BIND(Window, Windowskin, "windowskin")
+    INIT_PROP_BIND(Window, Contents, "contents")
+    INIT_PROP_BIND(Window, Stretch, "stretch")
+    INIT_PROP_BIND(Window, CursorRect, "cursor_rect")
+    INIT_PROP_BIND(Window, Active, "active")
+    INIT_PROP_BIND(Window, Pause, "pause")
+    INIT_PROP_BIND(Window, X, "x")
+    INIT_PROP_BIND(Window, Y, "y")
+    INIT_PROP_BIND(Window, Width, "width")
+    INIT_PROP_BIND(Window, Height, "height")
+    INIT_PROP_BIND(Window, OX, "ox")
+    INIT_PROP_BIND(Window, OY, "oy")
+    INIT_PROP_BIND(Window, Opacity, "opacity")
+    INIT_PROP_BIND(Window, BackOpacity, "back_opacity")
+    INIT_PROP_BIND(Window, ContentsOpacity, "contents_opacity")
 }

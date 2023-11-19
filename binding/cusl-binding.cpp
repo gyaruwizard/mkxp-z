@@ -33,7 +33,7 @@
   }
 
 RB_METHOD(CUSLSetStat) {
-  RB_UNUSED_PARAM;
+  RB_UNUSED_PARAM
 
   VALUE name, stat;
   rb_scan_args(argc, argv, "2", &name, &stat);
@@ -54,7 +54,7 @@ RB_METHOD(CUSLSetStat) {
 }
 
 RB_METHOD(CUSLGetStatI) {
-  RB_UNUSED_PARAM;
+  RB_UNUSED_PARAM
 
   VALUE name;
   rb_scan_args(argc, argv, "1", &name);
@@ -73,7 +73,7 @@ RB_METHOD(CUSLGetStatI) {
 }
 
 RB_METHOD(CUSLGetStatF) {
-  RB_UNUSED_PARAM;
+  RB_UNUSED_PARAM
 
   VALUE name;
   rb_scan_args(argc, argv, "1", &name);
@@ -92,7 +92,7 @@ RB_METHOD(CUSLGetStatF) {
 }
 
 RB_METHOD(CUSLGetAchievement) {
-  RB_UNUSED_PARAM;
+  RB_UNUSED_PARAM
 
   VALUE name;
   rb_scan_args(argc, argv, "1", &name);
@@ -111,7 +111,7 @@ RB_METHOD(CUSLGetAchievement) {
 }
 
 RB_METHOD(CUSLSetAchievement) {
-  RB_UNUSED_PARAM;
+  RB_UNUSED_PARAM
 
   VALUE name;
   rb_scan_args(argc, argv, "1", &name);
@@ -124,7 +124,7 @@ RB_METHOD(CUSLSetAchievement) {
 }
 
 RB_METHOD(CUSLClearAchievement) {
-  RB_UNUSED_PARAM;
+  RB_UNUSED_PARAM
 
   VALUE name;
 
@@ -138,7 +138,7 @@ RB_METHOD(CUSLClearAchievement) {
 }
 
 RB_METHOD(CUSLGetAchievementAndUnlockTime) {
-  RB_UNUSED_PARAM;
+  RB_UNUSED_PARAM
 
   VALUE name;
 
@@ -173,7 +173,7 @@ RB_METHOD(CUSLGetAchievementAndUnlockTime) {
 }
 
 RB_METHOD(CUSLStoreStats) {
-  RB_UNUSED_PARAM;
+  RB_UNUSED_PARAM
 
   rb_check_argc(argc, 0);
   bool ok;
@@ -184,7 +184,7 @@ RB_METHOD(CUSLStoreStats) {
 }
 
 RB_METHOD(CUSLResetAllStats) {
-  RB_UNUSED_PARAM;
+  RB_UNUSED_PARAM
 
   bool achievementsToo;
 
