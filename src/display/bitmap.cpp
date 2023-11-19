@@ -618,13 +618,6 @@ Bitmap::Bitmap(const char *filename)
 
 
     BitmapPrivate::ensureFormat(imgSurf, SDL_PIXELFORMAT_ABGR8888);
-    
-    if (imgSurf->w > glState.caps.maxTexSize || imgSurf->h > glState.caps.maxTexSize)
-    {
-
-
-    p->ensureFormat(imgSurf, SDL_PIXELFORMAT_ABGR8888);
-
     if (imgSurf->w > glState.caps.maxTexSize || imgSurf->h > glState.caps.maxTexSize) {
         /* Mega surface */
         p = std::make_unique<BitmapPrivate>(this);
