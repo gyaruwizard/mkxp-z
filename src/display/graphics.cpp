@@ -1122,7 +1122,7 @@ struct GraphicsPrivate {
         if (!(force || multithreadedMode)) return;
         
         SDL_LockMutex(glResourceLock);
-        SDL_GL_MakeCurrent(threadData->window, threadData->glContext);
+        SDL_GL_MakeCurrent(threadData->window, threadData->glContext.get());
     }
     
     void releaseLock(bool force = false) {

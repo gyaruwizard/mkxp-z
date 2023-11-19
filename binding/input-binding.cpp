@@ -353,7 +353,7 @@ RB_METHOD(inputControllerPowerLevel) {
 
 #define AXISFUNC(n, ax1, ax2) \
 RB_METHOD(inputControllerGet##n##Axis) {\
-RB_UNUSED_PARAM\
+RB_UNUSED_PARAM; \
 VALUE ret = rb_ary_new(); \
 if (!shState->eThread().getControllerConnected()) {\
 rb_ary_push(ret, rb_float_new(0)); rb_ary_push(ret, rb_float_new(0)); \

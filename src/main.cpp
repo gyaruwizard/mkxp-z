@@ -27,13 +27,9 @@
 
 #include <SDL.h>
 #include <SDL_image.h>
-#include <SDL_sound.h>
-#include <SDL_ttf.h>
 
 #include <assert.h>
-#include <string.h>
 #include <string>
-#include <unistd.h>
 #include <regex>
 
 #include "binding.h"
@@ -41,7 +37,6 @@
 #include "eventthread.h"
 #include "util/debugwriter.h"
 #include "util/exception.h"
-#include "display/gl/gl-debug.h"
 #include "display/gl/gl-fun.h"
 
 #include "core.h"
@@ -55,7 +50,7 @@
 
 #if defined(__WIN32__)
 #include "resource.h"
-#include <Winsock2.h>
+#include <winsock2.h>
 #include "winsock_wrapper.h"
 #include "util/win-consoleutils.h"
 
@@ -119,15 +114,14 @@ static void printGLInfo() {
   Debug() << "GLSL Version :" << glGetStringInt(GL_SHADING_LANGUAGE_VERSION);
 }
 
-static SDL_GLContext initGL(SDL_Window *win, Config &conf,
+static SDL_GLContext initGL(SDL_Window *win, const Config &conf,
                             RGSSThreadData *threadData);
 
 int rgssThreadFun(void *userdata) {
-  RGSSThreadData *threadData = static_cast<RGSSThreadData *>(userdata);
+    auto *threadData = static_cast<RGSSThreadData *>(userdata);
 
 #ifdef MKXPZ_INIT_GL_LATER
-  threadData->glContext =
-      initGL(threadData->window, threadData->config, threadData);
+  threadData->glContext.reset(initGL(threadData->window, threadData->config, threadData));
   if (!threadData->glContext)
     return 0;
 #else
@@ -443,9 +437,6 @@ int main(int argc, char *argv[]) {
                                rtData.rgssErrorMsg.c_str(), win.get());
     }
 
-    if (rtData.glContext)
-      SDL_GL_DeleteContext(rtData.glContext);
-
     /* Clean up any remainin events */
     eventThread.cleanup();
 
@@ -454,7 +445,7 @@ int main(int argc, char *argv[]) {
     return 0;
 }
 
-static SDL_GLContext initGL(SDL_Window *win, Config &conf,
+static SDL_GLContext initGL(SDL_Window *win, const Config &conf,
                             RGSSThreadData *threadData) {
   SDL_GLContext glCtx{};
 
@@ -468,7 +459,7 @@ static SDL_GLContext initGL(SDL_Window *win, Config &conf,
 
   if (!glCtx) {
     GLINIT_SHOWERROR(std::string("Could not create OpenGL context: ") + SDL_GetError());
-    return 0;
+    return nullptr;
   }
 
   try {
@@ -477,7 +468,7 @@ static SDL_GLContext initGL(SDL_Window *win, Config &conf,
     GLINIT_SHOWERROR(exc.msg);
     SDL_GL_DeleteContext(glCtx);
 
-    return 0;
+    return nullptr;
   }
 
 // This breaks scaling for Retina screens.
@@ -496,6 +487,5 @@ static SDL_GLContext initGL(SDL_Window *win, Config &conf,
   bool vsync = conf.vsync || conf.syncToRefreshrate;
   SDL_GL_SetSwapInterval(vsync ? 1 : 0);
 
-  // GLDebugLogger dLogger;
-  return glCtx;
+    return glCtx;
 }

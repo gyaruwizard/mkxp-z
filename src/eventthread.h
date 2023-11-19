@@ -38,9 +38,10 @@
 #include "keybindings.h"
 
 struct RGSSThreadData;
-typedef struct MKXPZ_ALCDEVICE ALCdevice;
+using ALCdevice = struct MKXPZ_ALCDEVICE;
 struct SDL_Window;
 union SDL_Event;
+using GLContext = std::unique_ptr<void, void(*)(SDL_GLContext)>;
 
 #define MAX_FINGERS 4
 
@@ -256,8 +257,8 @@ struct RGSSThreadData
 
 	SDL_Window *window;
 	ALCdevice *alcDev;
-    
-    SDL_GLContext glContext;
+
+    GLContext glContext;
 
 	Vec2 sizeResoRatio;
 	Vec2i screenOffset;
@@ -284,7 +285,7 @@ struct RGSSThreadData
 	      refreshRate(refreshRate),
           scale(scalingFactor),
 	      config(newconf),
-          glContext(ctx)
+          glContext(ctx, &SDL_GL_DeleteContext)
 	{}
 };
 
