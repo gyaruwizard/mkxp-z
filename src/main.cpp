@@ -374,7 +374,7 @@ int main(int argc, char *argv[]) {
     EventThread eventThread;
 
 #ifndef MKXPZ_INIT_GL_LATER
-    SDL_GLContext glCtx = initGL(win, conf, 0);
+    SDL_GLContext glCtx = initGL(win.get(), conf, 0);
 #else
     SDL_GLContext glCtx = nullptr;
 #endif
