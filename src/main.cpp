@@ -137,19 +137,20 @@ std::unique_ptr<ALCcontext, void (*)(ALCcontext *)> startRgssThread(RGSSThreadDa
 
 #ifdef MKXPZ_INIT_GL_LATER
   threadData->glContext.reset(initGL(threadData->window, threadData->config, threadData));
-  if (!threadData->glContext)
+  if (!threadData->glContext) {
 #ifdef MKXPZ_RUBY_GEM
-        RgssThreadManager::getInstance().unlockRgssThread();
-    throw std::system_error(std::error_code(), "RGSS failed to initialize!");
+      RgssThreadManager::getInstance().unlockRgssThread();
+      throw std::system_error(std::error_code(), "RGSS failed to initialize!");
 #else
-    return 0;
+      return 0;
 #endif
+  }
 #else
   SDL_GL_MakeCurrent(threadData->window, threadData->glContext.get());
 #endif
 
   /* Setup AL context */
-  std::unique_ptr<ALCcontext, void (*)(ALCcontext *)> alcCtx(alcCreateContext(threadData->alcDev, 0),
+  std::unique_ptr<ALCcontext, void (*)(ALCcontext *)> alcCtx(alcCreateContext(threadData->alcDev, nullptr),
                                                              &alcDestroyContext);
 
     if (!alcCtx)
@@ -409,7 +410,7 @@ int main(int argc, char *argv[]) {
 #endif
 #endif
 
-    std::unique_ptr<ALCdevice, ALCboolean(*)(ALCdevice*)> alcDev(alcOpenDevice("null"), &alcCloseDevice);
+    std::unique_ptr<ALCdevice, ALCboolean(*)(ALCdevice*)> alcDev(alcOpenDevice(nullptr), &alcCloseDevice);
 
     if (!alcDev)
       Debug() << "Could not detect an available audio device.";
