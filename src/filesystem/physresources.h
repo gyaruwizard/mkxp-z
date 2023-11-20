@@ -10,11 +10,25 @@
 #pragma once
 
 #include "raiiwrapper.h"
+#include "debugwriter.h"
+
+#include <physfs.h>
 
 class PhysResources : public RaiiWrapper {
 public:
-    explicit PhysResources(const char *argv0);
-    ~PhysResources();
+    explicit PhysResources(const char *argv0)  {
+        if (PHYSFS_init(argv0) != 0)
+            startupSucceeded();
+        else
+            startupFailed("Error initializing PhysFS");
+    }
+
+    ~PhysResources()  {
+        if (startedSuccessfully()) {
+            if (PHYSFS_deinit() == 0)
+                Debug() << "PhyFS failed to deinit.";
+        }
+    }
 
     PhysResources(const PhysResources &) = delete;
     PhysResources(PhysResources&&) = delete;
