@@ -407,6 +407,9 @@ void ALStream::streamData()
 	 * refill and queue them up again */
 	while (true)
 	{
+        if (shState == nullptr)
+            break;
+
 		shState->rtData().syncPoint.passSecondarySync();
 
 		ALint procBufs = AL::Source::getProcBufferCount(alSrc);
