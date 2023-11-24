@@ -2450,9 +2450,11 @@ void Bitmap::releaseResources()
     else if (p->animation.enabled) {
         p->animation.enabled = false;
         p->animation.playing = false;
-        for (TEXFBO &tex : p->animation.frames)
-            shState->texPool().release(tex);
+        if (shState != nullptr) {
+            for (TEXFBO &tex: p->animation.frames)
+                shState->texPool().release(tex);
+        }
     }
-    else
+    else if (shState != nullptr)
         shState->texPool().release(p->gl);
 }
