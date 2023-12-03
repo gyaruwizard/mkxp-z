@@ -62,8 +62,8 @@ struct SharedMidiState
 
 		for (size_t i = 0; i < synths.size(); ++i)
 		{
-			assert(!synths[i].inUse);
-			fluid.delete_synth(synths[i].synth);
+			if(!synths[i].inUse)
+			    fluid.delete_synth(synths[i].synth);
 		}
 	}
 
