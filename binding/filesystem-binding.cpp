@@ -206,7 +206,11 @@ RB_METHOD(kernelLoadData) {
     
     bool rawv;
     rb_bool_arg(raw, &rawv);
-    return kernelLoadDataInt(RSTRING_PTR(filename), true, rawv);
+    try {
+        return kernelLoadDataInt(RSTRING_PTR(filename), false, rawv);
+    } catch (const Exception &e) {
+        return Qnil;
+    }
 }
 
 RB_METHOD(kernelSaveData) {
