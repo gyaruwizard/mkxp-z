@@ -4,26 +4,20 @@
 
 #include "gem-binding.h"
 #include "binding-util.h"
-#include "rgssthreadmanager.h"
 #include "debugwriter.h"
 
 #include <ruby.h>
 #include <alc.h>
 
-#include "eventthread.h"
+#include "gamestate.h"
 
-ALCcontextPtr startRgssThread(RGSSThreadData *threadData);
+#if RAPI_FULL > 187
+DEF_TYPE(GameState);
+#else
+DEF_ALLOCFUNC(GameState);
+#endif
 
-int killRgssThread(RGSSThreadData *threadData);
-
-int startGameWindow(int argc, char *argv[], bool showWindow = true);
-
-void killGameState(VALUE);
-
-RB_METHOD(initGameState) {
-    RB_UNUSED_PARAM
-
-    Debug() << "MKXP-Z starting up!";
+RB_METHOD(gameStateInitialize) {
     VALUE windowName;
     VALUE args;
     VALUE visible;
@@ -47,79 +41,21 @@ RB_METHOD(initGameState) {
     bool windowVisible;
     rb_bool_arg(visible, &windowVisible);
 
-    auto &gemBinding = GemBinding::getInstance();
-    gemBinding.startEventThread(std::move(appName), std::move(argList), windowVisible);
+    auto state = initInstance<GameState>(std::move(appName), std::move(argList), windowVisible);
+    setPrivateData(self, state);
 
-    const auto &threadManager = RgssThreadManager::getInstance();
-    while (threadManager.getThreadData() == nullptr) {
-        if (gemBinding.isEventThreadKilled())
-            return Qfalse;
-        std::this_thread::yield();
-    }
-
-    try {
-        gemBinding.setAlcContext(startRgssThread(threadManager.getThreadData()));
-#ifndef _WIN32
-        rb_set_end_proc(killGameState, 0);
-#endif
-        return Qtrue;
-    } catch (const std::system_error &e) {
-        Debug() << e.what();
-        return Qfalse;
-    }
-}
-
-void killGameState(VALUE) {
-    auto &gemBinding = GemBinding::getInstance();
-    if (const auto &threadManager = RgssThreadManager::getInstance(); threadManager.getThreadData() != nullptr) {
-        killRgssThread(threadManager.getThreadData());
-        gemBinding.clearAlcContext();
-    }
-    gemBinding.stopEventThread();
+    return self;
 }
 
 extern "C" {
 MKXPZ_GEM_EXPORT void Init_mkxpz() {
-    auto mkxpzModule = rb_define_module("MKXP_Z");
-    _rb_define_module_function(mkxpzModule, "init_game_state", initGameState);
-
-#ifdef _WIN32
-    rb_set_end_proc(killGameState, 0);
+    auto klass = rb_define_class("GameState", rb_cObject);
+#if RAPI_FULL > 187
+    rb_define_alloc_func(klass, classAllocate<&GameStateType>);
+#else
+    rb_define_alloc_func(klass, GameStateAllocate);
 #endif
+    _rb_define_method(klass, "initialize", gameStateInitialize);
 }
 }
 
-GemBinding::GemBinding() : alcCtx(nullptr, alcDestroyContext) {
-
-}
-
-GemBinding::~GemBinding() = default;
-
-GemBinding &GemBinding::getInstance() {
-    static GemBinding gemBinding;
-    return gemBinding;
-}
-
-void GemBinding::stopEventThread() {
-    if (eventThread != nullptr && !eventThreadKilled)
-        eventThread->request_stop();
-}
-
-void GemBinding::startEventThread(std::string &&windowName, std::vector<std::string> &&args, bool windowVisible) {
-    rgssWindowName = std::move(windowName);
-    eventThreadArgs = std::move(args);
-    showWindow = windowVisible;
-
-    eventThread = std::make_unique<std::jthread>(&GemBinding::runEventThread, this);
-}
-
-void GemBinding::runEventThread() {
-    std::vector<char *> argv;
-    argv.push_back(rgssWindowName.data());
-    for (auto &a: eventThreadArgs) {
-        argv.push_back(a.data());
-    }
-    startGameWindow((int) argv.size(), argv.data(), showWindow);
-    eventThreadKilled = true;
-    Debug() << "Event thread exiting!";
-}

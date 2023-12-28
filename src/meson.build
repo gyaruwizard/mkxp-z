@@ -179,4 +179,8 @@ main_source = files(
     'system/systemImpl.cpp'
 )
 
+if (get_option('build_gem') == true)
+    main_source += files('gamestate.cpp')
+endif
+
 global_sources += main_source

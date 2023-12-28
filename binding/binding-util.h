@@ -191,8 +191,8 @@ template <rb_data_type_t *rbType> static VALUE classAllocate(VALUE klass) {
 #endif
 
 // Used as a memory management wrapper to shut up static analyzers
-template <class C, typename... Args> static C* initInstance(Args... args) {
-    return new C(args...);
+template <class C, typename... Args> inline C* initInstance(Args&&... args) {
+    return new C(std::forward<Args>(args)...);
 }
 
 template <class C> static void freeInstance(void *inst) {
