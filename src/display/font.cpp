@@ -109,6 +109,10 @@ struct SharedFontStatePrivate
     /* Internal default font family that is used anytime an
      * empty/invalid family is requested */
     std::string defaultFamily;
+
+	int fontSizeMethod;
+	float fontScale;
+	bool fontKerning;
 };
 
 SharedFontState::SharedFontState(const Config &conf)
@@ -129,6 +133,24 @@ SharedFontState::SharedFontState(const Config &conf)
 
 		p->subs.insert(from, to);
 	}
+	
+	p->fontSizeMethod = conf.fontSizeMethod;
+	if (!p->fontSizeMethod)
+	{
+		if (rgssVer == 1)
+			p->fontSizeMethod = 1;
+		else
+			p->fontSizeMethod = 2;
+	}
+	p->fontScale = conf.fontScale;
+	if (p->fontScale < 0.1f)
+	{
+		if (p->fontSizeMethod == 1)
+			p->fontScale = 0.9f;
+		else
+			p->fontScale = 1.0f;
+	}
+	p->fontKerning = conf.fontKerning;
 }
 
 SharedFontState::~SharedFontState()
@@ -212,28 +234,49 @@ _TTF_Font *SharedFontState::getFont(std::string family,
 		shState->fileSystem().openReadRaw(*ops, path, true);
 	}
 
-	// freetype's default dpi is 72
-	int dpi = 72;
-	font = TTF_OpenFontDPIRW(ops, 1, size, dpi, dpi);
+	size = std::max<int>(size * p->fontScale, 5);
 
-	if (!font)
-		throw Exception(Exception::SDLError, "%s", SDL_GetError());
+	// Pokemon Essentials games were made with the old font size method in mind,
+	// so we default to it for all XP games.
+	if(p->fontSizeMethod == 1)
+	{
+		// FIXME 0.9 is guesswork at this point
+//		float gamma = (96.0/45.0)*(5.0/14.0)*(size-5);
+//		font = TTF_OpenFontRW(ops, 1, gamma /** .90*/);
+//		font = TTF_OpenFontRW(ops, 1, size* 0.90f);
+		font = TTF_OpenFontRW(ops, 1, size);
 
-	// Figure out the dpi needed. It varies by font.
-	// There can be more than one for a given height, which potentially have different widths,
-	// but the range shrinks toward the biggest one as the size gets bigger
-	// Using the biggest one
-	while(TTF_FontHeight(font) <= size)
-	{
-		++dpi;
-		TTF_SetFontSizeDPI(font, size, dpi, dpi);
+		if (!font)
+			throw Exception(Exception::SDLError, "%s", SDL_GetError());
 	}
-	while(TTF_FontHeight(font) > size)
+	else
 	{
-		--dpi;
-		TTF_SetFontSizeDPI(font, size, dpi, dpi);
+		// freetype's default dpi is 72
+		int dpi = 72;
+		font = TTF_OpenFontDPIRW(ops, 1, size, dpi, dpi);
+
+		if (!font)
+			throw Exception(Exception::SDLError, "%s", SDL_GetError());
+
+		// Figure out the dpi needed. It varies by font.
+		// There can be more than one for a given height, which potentially have different widths,
+		// but the range shrinks toward the biggest one as the size gets bigger
+		// Using the biggest one
+		while(TTF_FontHeight(font) <= size)
+		{
+			++dpi;
+			TTF_SetFontSizeDPI(font, size, dpi, dpi);
+		}
+		while(TTF_FontHeight(font) > size)
+		{
+			--dpi;
+			TTF_SetFontSizeDPI(font, size, dpi, dpi);
+		}
 	}
-	
+
+	if (!p->fontKerning)
+		TTF_SetFontKerning(font, 0);
+
 	p->pool.insert(key, font);
 
 	return font;
