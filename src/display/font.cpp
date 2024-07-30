@@ -231,7 +231,7 @@ _TTF_Font *SharedFontState::getFont(std::string family,
 		                 ? req.regular.c_str() : req.other.c_str();
 
 		ops = SDL_AllocRW();
-		shState->fileSystem().openReadRaw(*ops, path, true);
+			shState->fileSystem().openReadRaw(*ops, path, true);
 	}
 
 	size = std::max<int>(size * p->fontScale, 5);
@@ -258,19 +258,28 @@ _TTF_Font *SharedFontState::getFont(std::string family,
 		if (!font)
 			throw Exception(Exception::SDLError, "%s", SDL_GetError());
 
-		// Figure out the dpi needed. It varies by font.
-		// There can be more than one for a given height, which potentially have different widths,
-		// but the range shrinks toward the biggest one as the size gets bigger
-		// Using the biggest one
-		while(TTF_FontHeight(font) <= size)
+		/* Is the font dpi scalable?
+		 * This is should always be true, but we may as well check... */
+		int h = TTF_FontHeight(font);
+		TTF_SetFontSizeDPI(font, size, dpi * 2, dpi * 2);
+		if (h != TTF_FontHeight(font))
 		{
-			++dpi;
 			TTF_SetFontSizeDPI(font, size, dpi, dpi);
-		}
-		while(TTF_FontHeight(font) > size)
-		{
-			--dpi;
-			TTF_SetFontSizeDPI(font, size, dpi, dpi);
+			
+			// Figure out the dpi needed. It varies by font.
+			// There can be more than one for a given height, which potentially have different widths,
+			// but the range shrinks toward the biggest one as the size gets bigger
+			// Using the biggest one
+			while(TTF_FontHeight(font) <= size)
+			{
+				++dpi;
+				TTF_SetFontSizeDPI(font, size, dpi, dpi);
+			}
+			while(TTF_FontHeight(font) > size)
+			{
+				--dpi;
+				TTF_SetFontSizeDPI(font, size, dpi, dpi);
+			}
 		}
 	}
 
