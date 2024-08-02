@@ -231,7 +231,12 @@ _TTF_Font *SharedFontState::getFont(std::string family,
 		                 ? req.regular.c_str() : req.other.c_str();
 
 		ops = SDL_AllocRW();
+		try{
 			shState->fileSystem().openReadRaw(*ops, path, true);
+		} catch (const Exception &e) {
+			SDL_FreeRW(ops);
+			throw e;
+		}
 	}
 
 	size = std::max<int>(size * p->fontScale, 5);
