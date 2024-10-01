@@ -39,7 +39,7 @@
     // If this fails, the version defaults to 1.
     // (default: 0)
     //
-    // "rgssVersion": 1,
+    // "rgssVersion": 0,
 
 
     // Continuously display average FPS in window title.
@@ -303,7 +303,7 @@
     // Set the base path of the game to '/path/to/game'
     // (default: executable directory)
     //
-    // "gameFolder": ".",
+    "gameFolder": ".",
 
 
     // Use either right or left Alt + Enter to toggle

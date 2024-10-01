@@ -8,7 +8,7 @@ endif
 
 xxd = find_program('xxd', native: true)
 
-git_hash = run_command('git', 'rev-parse', '--short', 'HEAD').stdout().strip()
+git_hash = run_command('git', 'rev-parse', '--short', 'HEAD', check: false).stdout().strip()
 
 compilers = {'cpp': meson.get_compiler('cpp')}
 
@@ -16,7 +16,7 @@ global_sources = []
 global_dependencies = []
 global_include_dirs = []
 global_args = []
-global_link_args = []
+global_link_args = [ '-ltheoradec' ]
 
 sizeof = {'void*': compilers['cpp'].sizeof('void*'),
           'long': compilers['cpp'].sizeof('long')

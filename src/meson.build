@@ -1,17 +1,17 @@
-physfs = dependency('physfs', version: '>=2.1', static: build_static)
-openal = dependency('openal', static: build_static, method: 'pkg-config')
-theora = dependency('theora', static: build_static)
-vorbisfile = dependency('vorbisfile', static: build_static)
-vorbis = dependency('vorbis', static: build_static)
-ogg = dependency('ogg', static: build_static)
-sdl2 = dependency('SDL2', static: build_static)
+physfs = dependency('physfs', version: '>=2.1', static: false)
+openal = dependency('openal', static: false, method: 'pkg-config')
+theora = dependency('theora', static: false)
+vorbisfile = dependency('vorbisfile', static: false)
+vorbis = dependency('vorbis', static: false)
+ogg = dependency('ogg', static: false)
+sdl2 = dependency('SDL2', static: false)
 sdl_sound = compilers['cpp'].find_library('SDL2_sound')
-sdl2_ttf = dependency('SDL2_ttf', static: build_static)
-freetype = dependency('freetype2', static: build_static)
-pixman = dependency('pixman-1', static: build_static)
-png = dependency('libpng', static: build_static)
-zlib = dependency('zlib', static: build_static)
-uchardet = dependency('uchardet', static: build_static)
+sdl2_ttf = dependency('SDL2_ttf', static: false)
+freetype = dependency('freetype2', static: false)
+pixman = dependency('pixman-1', static: false)
+png = dependency('libpng', static: false)
+zlib = dependency('zlib', static: false)
+uchardet = dependency('uchardet', static: false)
 
 # As no pkg-config file is generated for static sdl2_image, and pkg-config is
 # the default option for meson detecting dependencies, pkg-config will fail to
@@ -22,14 +22,14 @@ uchardet = dependency('uchardet', static: build_static)
 # building the sub project.
 # It looks like upstream SDL_image fixed this for SDL3, so we can hopefully
 # remove this workaround after eventually upgrading to SDL3.
-sdl2_image = dependency('SDL2_image', modules: ['SDL2_image::SDL2_image-static', 'SDL2_image::brotlidec-static', 'SDL2_image::brotlicommon-static', 'SDL2_image::hwy', 'SDL2_image::jxl_dec-static'], static: build_static, method: 'cmake', required: false)
+sdl2_image = dependency('SDL2_image', modules: ['SDL2_image::SDL2_image-static', 'SDL2_image::brotlidec-static', 'SDL2_image::brotlicommon-static', 'SDL2_image::hwy', 'SDL2_image::jxl_dec-static'], static: false, method: 'pkg-config', required: false)
 if sdl2_image.found() == false
-    sdl2_image = dependency('SDL2_image', modules: ['SDL2_image::SDL2_image-static', 'SDL2_image::brotlidec-static', 'SDL2_image::brotlicommon-static', 'SDL2_image::hwy', 'SDL2_image::jxl_dec-static'], static: build_static)
+    sdl2_image = dependency('SDL2_image', modules: ['SDL2_image::SDL2_image-static', 'SDL2_image::brotlidec-static', 'SDL2_image::brotlicommon-static', 'SDL2_image::hwy', 'SDL2_image::jxl_dec-static'], static: false)
 endif
 
 if host_system == 'windows'
-    bz2 = dependency('bzip2', static: build_static)
-    iconv = compilers['cpp'].find_library('iconv', static: build_static)
+    bz2 = dependency('bzip2', static: false)
+    iconv = compilers['cpp'].find_library('iconv', static: false)
 else
     bz2 = compilers['cpp'].find_library('bz2')
     # FIXME: Specifically asking for static doesn't work if iconv isn't
@@ -40,7 +40,7 @@ endif
 
 # If OpenSSL is present, you get HTTPS support
 if get_option('enable-https') == true
-    openssl = dependency('openssl', required: false, static: build_static)
+    openssl = dependency('openssl', required: false, static: false)
     if openssl.found() == true
         global_dependencies += openssl
         global_args += '-DMKXPZ_SSL'
@@ -102,7 +102,7 @@ if host_system == 'windows'
 endif
 
 if get_option('shared_fluid') == true
-    fluidsynth = dependency('fluidsynth', static: build_static)
+    fluidsynth = dependency('fluidsynth', static: false)
     add_project_arguments('-DSHARED_FLUID', language: 'cpp')
     global_dependencies += fluidsynth
     if host_system == 'windows'
