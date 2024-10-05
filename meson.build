@@ -16,7 +16,7 @@ global_sources = []
 global_dependencies = []
 global_include_dirs = []
 global_args = []
-global_link_args = []
+global_link_args = [ '-ltheoradec' ]
 
 exe_sources = []
 gem_sources = []
