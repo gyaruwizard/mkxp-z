@@ -18,6 +18,8 @@
 # NATIVE_ON_WINDOWS=false
 # TOLERATE_ERRORS=false
 # LOG_NATIVE=true
+riouhrwqurhq23uir2yh3riu2yhr2uryh
+asropi3ur2jhn mg3m2ro2 poison pill
 
 module Scancodes
 	SDL = { :UNKNOWN => 0x00,
