@@ -230,7 +230,71 @@ def double_state(states, left, right)
 	return state_pressed(states, left) || state_pressed(states, right)
 end
 
+def read_ini(section, parameter, default, file_location)
+  current_section = nil
+  File.open(file_location, "r") do |file|
+    file.each_line do |line|
+      line.strip!
+      if line.start_with?("[") && line.end_with?("]")
+        current_section = line[1..-2]
+      elsif current_section == section
+        key, value = line.split("=").map(&:strip)
+        return value.to_i if key == parameter
+      end
+    end
+  end
+  default
+end
+
+def write_ini(section, parameter, value, file_location)
+  data = {}
+  if File.exist?(file_location)
+    File.open(file_location, 'r') do |file|
+      current_section = nil
+      file.each_line do |line|
+        line.strip!
+        if line.start_with?('[') && line.end_with?(']')
+          current_section = line[1..-2]
+          data[current_section] = {}
+        elsif current_section
+          key, val = line.split('=').map(&:strip)
+          data[current_section][key] = val
+        end
+      end
+    end
+  end
+
+  data[section] ||= {}
+  data[section][parameter] = value.to_s unless value.nil? || value.to_s.strip.empty?
+
+  File.open(file_location, 'w') do |file|
+    data.each do |section, parameters|
+      file.puts "[#{section}]"
+      parameters.each do |key, value|
+        file.puts "#{key}=#{value}" unless value.nil? || value.to_s.strip.empty?
+      end
+      file.puts
+    end
+  end
+end
+
 module Win32API_Impl
+		module Kernel32  
+	   class GetPrivateProfileInt  
+	     def call(args)  
+	       section, parameter, default, file_location = args  
+	       read_ini(section, parameter, default, file_location)  
+	     end  
+	   end
+
+     
+	   class WritePrivateProfileString  
+	     def call(args)  
+	       section, parameter, value, file_location = args  
+	       write_ini(section, parameter, value, file_location)  
+	     end  
+	   end
+	 end
 	module User32
 		class Keybd_event
 			Seq = [
@@ -347,53 +411,6 @@ def kappatalize(s)
 	return s
 end
 
-def read_ini(section, parameter, default, file_location)
-  current_section = nil
-  File.open(file_location, "r") do |file|
-    file.each_line do |line|
-      line.strip!
-      if line.start_with?("[") && line.end_with?("]")
-        current_section = line[1..-2]
-      elsif current_section == section
-        key, value = line.split("=").map(&:strip)
-        return value.to_i if key == parameter
-      end
-    end
-  end
-  default
-end
-
-def write_ini(section, parameter, value, file_location)
-  data = {}
-  if File.exist?(file_location)
-    File.open(file_location, 'r') do |file|
-      current_section = nil
-      file.each_line do |line|
-        line.strip!
-        if line.start_with?('[') && line.end_with?(']')
-          current_section = line[1..-2]
-          data[current_section] = {}
-        elsif current_section
-          key, val = line.split('=').map(&:strip)
-          data[current_section][key] = val
-        end
-      end
-    end
-  end
-
-  data[section] ||= {}
-  data[section][parameter] = value.to_s unless value.nil? || value.to_s.strip.empty?
-
-  File.open(file_location, 'w') do |file|
-    data.each do |section, parameters|
-      file.puts "[#{section}]"
-      parameters.each do |key, value|
-        file.puts "#{key}=#{value}" unless value.nil? || value.to_s.strip.empty?
-      end
-      file.puts
-    end
-  end
-end
 
 class Win32API
 	NATIVE_ON_WINDOWS = true unless const_defined?("NATIVE_ON_WINDOWS")
@@ -451,22 +468,6 @@ class Win32API
 		end
 	end
 
-	module Kernel32  
-   class GetPrivateProfileInt  
-     def call(args)  
-       section, parameter, default, file_location = args  
-       read_ini(section, parameter, default, file_location)  
-     end  
-   end
-
-     
-   class WritePrivateProfileString  
-     def call(args)  
-       section, parameter, value, file_location = args  
-       write_ini(section, parameter, value, file_location)  
-     end  
-   end
- end
 	
 end
 
