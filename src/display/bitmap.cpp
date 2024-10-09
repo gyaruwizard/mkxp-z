@@ -2008,12 +2008,89 @@ static void applyShadow(SDL_Surface *&in, const SDL_PixelFormat &fm, const SDL_C
     in = out;
 }
 
+/* An implementation of the bitmap blit equation (see shader/bitmapBlit.frag),
+ * specialized for combining text with its outline to slightly optimize it. */
+static void combineOutline(SDL_Surface *txtSrf, SDL_Rect &inRect, const SDL_Color &inColor,
+                           SDL_Surface *outSrf, SDL_Rect &outRect, const SDL_Color &outColor)
+{
+    size_t offset = (inRect.x * txtSrf->format->BytesPerPixel) + (inRect.y * txtSrf->pitch);
+    uint8_t *txtStart = (uint8_t*)txtSrf->pixels + offset;
+    offset = (outRect.x * outSrf->format->BytesPerPixel) + (outRect.y * outSrf->pitch);
+    uint8_t *outStart = (uint8_t*)outSrf->pixels + offset;
+    
+    // SDL_TTF sets every pixel to the same RGB value and just adjusts the alpha
+    float txtR = inColor.r;
+    float txtG = inColor.g;
+    float txtB = inColor.b;
+    float outR = outColor.r;
+    float outG = outColor.g;
+    float outB = outColor.b;
+    
+    for (int i=0; i < inRect.h; i++)
+    {
+        uint32_t *txtPixel = (uint32_t*)(txtStart + i*txtSrf->pitch);
+        uint32_t *outPixel = (uint32_t*)(outStart + i*outSrf->pitch);
+        for (int j=0; j < inRect.w; j++)
+        {
+            uint8_t txtA = (*txtPixel >> txtSrf->format->Ashift) & 0xFF;
+            uint8_t outA = (*outPixel >> outSrf->format->Ashift) & 0xFF;
+            
+            if (&inColor != &outColor || outA != 255)
+            {
+                if (txtA == 255 || outA == 0)
+                {
+                    *outPixel = *txtPixel;
+                } else if (txtA != 0) {
+                    int32_t co1 = txtA * 255;
+                    int32_t co2 = outA * (255 - txtA);
+                    
+                    /* Result alpha */
+                    int32_t fa = co1 + co2;
+                    
+                    /* Result colors */
+                    uint8_t r, g, b, a;
+                    
+                    /* Skip RGB calculations when blitting the outline */
+                    if (&inColor == &outColor)
+                    {
+                        r = txtR;
+                        g = txtG;
+                        b = txtB;
+                    } else {
+                        float faInv = 1.0f / fa;
+                        float co3 = co1 * faInv;
+                        float co4 = co2 * faInv;
+                        // Adding a small number to combat floating point errors.
+                        r = std::min<int>((txtR * co3 + outR * co4) + 0.001f, 255);
+                        g = std::min<int>((txtG * co3 + outG * co4) + 0.001f, 255);
+                        b = std::min<int>((txtB * co3 + outB * co4) + 0.001f, 255);
+                    }
+                    a = (fa + 1 + (fa >> 8)) >> 8;
+                    /* Use this instead if we decide we want to round 
+                     * RGSS seems to not round, but our blit shader seemingly does. */
+                    //a = (fa + 128 + ((fa + 128) >> 8)) >> 8;
+                    
+                    *outPixel = SDL_MapRGBA(outSrf->format, r, g, b, a);
+                }
+            }
+            
+            txtPixel++;
+            outPixel++;
+        }
+    }
+}
+
 void Bitmap::drawText(const IntRect &rect, const char *str, int align)
 {
     guardDisposed();
     
     GUARD_MEGA;
     GUARD_ANIMATED;
+    
+    // RGSS doesn't let you draw text backwards
+    if (rect.w <= 0 || rect.h <= 0 || rect.x >= width() || rect.y >= height() ||
+        rect.w < -rect.x || rect.h < -rect.y)
+        return;
     
     if (hasHires()) {
         Font &loresFont = getFont();
@@ -2050,8 +2127,57 @@ void Bitmap::drawText(const IntRect &rect, const char *str, int align)
     const Color &fontColor = p->font->getColor();
     const Color &outColor = p->font->getOutColor();
     
+    // RGSS crops the the text slightly if there's an outline
+    int scaledOutlineSize = 0;
+    if (p->font->getOutline()) {
+        // Handle high-res for outline.
+        if (p->selfLores) {
+            scaledOutlineSize = OUTLINE_SIZE * width() / p->selfLores->width();
+        } else {
+            scaledOutlineSize = OUTLINE_SIZE;
+        }
+    }
+    int doubleOutlineSize = scaledOutlineSize * 2;
+    
     SDL_Color c = fontColor.toSDLColor();
-    c.a = 255;
+    
+    if (c.a == 0)
+        return;
+    
+    // Use the output of textSize to determine squeezing, since textSize tends to be used to determine
+    // rect dimensions.
+    // Also use it to determine position, because freetype sometimes treats the last character as
+    // being a pixel wider than it should be, and which textSize is currently set to compensate for.
+    int alignmentWidth = textSize(str).w;
+    
+    // Trim the text to only fill double the rect width
+    int charLimit = 0;
+    float squeezeLimit = 0.5f;
+    if (TTF_MeasureUTF8(font, str, std::min(width() - rect.x, rect.w) / squeezeLimit, nullptr, &charLimit) == 0)
+    {
+        if (charLimit != fixed.size())
+        {
+            /* TTF_MeasureUTF8 returns the charLimit in codepoints, not bytes,
+             * so we have to calculate where that limit is ourselves.
+             * Grabbing a few codepoints past the limit in case the next
+             * character is a multi codepoint character.*/
+            charLimit += 4;
+            for(std::string::iterator it=fixed.begin(); it!=fixed.end() && *it != '\0'; ++it)
+            {
+                /* The first byte of a multibyte character starts with the first
+                 * two bits set to 11, with subsequent bytes starting with 10.
+                 * Single byte characters start with 0.*/
+                if ((*it & 0xC0) != 0x80)
+                {
+                    if (charLimit-- == 0)
+                    {
+                        *it = '\0';
+                        break;
+                    }
+                }
+            }
+        }
+    }
     
     SDL_Surface *txtSurf;
     
@@ -2062,40 +2188,8 @@ void Bitmap::drawText(const IntRect &rect, const char *str, int align)
     
     p->ensureFormat(txtSurf, SDL_PIXELFORMAT_ABGR8888);
     
-    int rawTxtSurfH = txtSurf->h;
-    
     if (p->font->getShadow())
         applyShadow(txtSurf, *p->format, c);
-    
-    /* outline using TTF_Outline and blending it together with SDL_BlitSurface
-     * FIXME: outline is forced to have the same opacity as the font color */
-    if (p->font->getOutline())
-    {
-        SDL_Color co = outColor.toSDLColor();
-        co.a = 255;
-        SDL_Surface *outline;
-        // Handle high-res for outline.
-        int scaledOutlineSize = OUTLINE_SIZE;
-        if (p->selfLores) {
-            scaledOutlineSize = scaledOutlineSize * width() / p->selfLores->width();
-        }
-        /* set the next font render to render the outline */
-        TTF_SetFontOutline(font, scaledOutlineSize);
-        if (p->font->isSolid())
-            outline = TTF_RenderUTF8_Solid(font, str, co);
-        else
-            outline = TTF_RenderUTF8_Blended(font, str, co);
-        
-        p->ensureFormat(outline, SDL_PIXELFORMAT_ABGR8888);
-        SDL_Rect outRect = {scaledOutlineSize, scaledOutlineSize, txtSurf->w, txtSurf->h};
-        
-        SDL_SetSurfaceBlendMode(txtSurf, SDL_BLENDMODE_BLEND);
-        SDL_BlitSurface(txtSurf, NULL, outline, &outRect);
-        SDL_FreeSurface(txtSurf);
-        txtSurf = outline;
-        /* reset outline to 0 */
-        TTF_SetFontOutline(font, 0);
-    }
     
     int alignX = rect.x;
     
@@ -2106,38 +2200,92 @@ void Bitmap::drawText(const IntRect &rect, const char *str, int align)
             break;
             
         case Center :
-            alignX += (rect.w - txtSurf->w) / 2;
+            // Yes, half of the outline size.
+            alignX += (rect.w - (alignmentWidth + scaledOutlineSize)) / 2;
             break;
             
         case Right :
-            alignX += rect.w - txtSurf->w;
+            // I don't know why it's double the outline size, but it is.
+            alignX += rect.w - alignmentWidth - doubleOutlineSize;
             break;
     }
     
     if (alignX < rect.x)
         alignX = rect.x;
     
-    int alignY = rect.y + (rect.h - rawTxtSurfH) / 2;
+    int alignY = rect.y + ((rect.h - txtSurf->h) / 2) - scaledOutlineSize;
     
-    float squeeze = (float) rect.w / txtSurf->w;
+    alignY = std::max(alignY, rect.y);
     
-    if (squeeze > 1)
-        squeeze = 1;
+    /* FIXME: RGSS begins squeezing the text before it fills the rect.
+     * While this is extremely undesirable, a number of games will understandably
+     * have made the rects bigger to compensate, so we should probably match it */
+    float squeeze = (float) rect.w / alignmentWidth;
     
-    IntRect destRect(alignX, alignY, 0, 0);
-    destRect.w = std::min(rect.w, (int)(txtSurf->w * squeeze));
-    destRect.h = std::min(rect.h, txtSurf->h);
+    squeeze = clamp(squeeze, squeezeLimit, 1.0f);
+    
+    /* RGSS's outline is drawn by blitting a complete set of text four times, offset diagonally. */
+    if (scaledOutlineSize)
+    {
+        SDL_Color co = outColor.toSDLColor();
+        co.a = co.a * c.a / 255.0f;
+
+        SDL_Surface *outline_base;
+        if (p->font->isSolid())
+            outline_base = TTF_RenderUTF8_Solid(font, str, co);
+        else
+            outline_base = TTF_RenderUTF8_Blended(font, str, co);
+        
+        /* We should probably be squeezing the text before the outline's drawn.
+         * We'd have to do software shrinking, though - using the GPU to do five
+         * blits has too much overhead. It's probably not worth it. */
+        int scaledRectWidth = rect.w / squeeze;
+        
+        /* The top row and left column of pixels are clipped when an outline's being drawn */
+        SDL_Surface *outline = SDL_CreateRGBSurface(0,
+                                                   std::min(outline_base->w + scaledOutlineSize, scaledRectWidth),
+                                                   std::min(outline_base->h + scaledOutlineSize, rect.h),
+                                                   p->format->BitsPerPixel,
+                                                   p->format->Rmask, p->format->Gmask,
+                                                   p->format->Bmask, p->format->Amask);
+        
+        p->ensureFormat(outline_base, SDL_PIXELFORMAT_ABGR8888);
+        p->ensureFormat(outline, SDL_PIXELFORMAT_ABGR8888);
+        
+        SDL_Rect inRect = {scaledOutlineSize, scaledOutlineSize,
+                           outline->w - doubleOutlineSize, outline->h - doubleOutlineSize};
+        SDL_Rect outRect = {0, 0, inRect.w, inRect.h};
+        SDL_SetSurfaceBlendMode(outline_base, SDL_BLENDMODE_NONE);
+        
+        SDL_LowerBlit(outline_base, &inRect, outline, &outRect);
+        
+        outRect.x = doubleOutlineSize;
+        combineOutline(outline_base, inRect, co, outline, outRect, co);
+        
+        outRect.y = doubleOutlineSize;
+        combineOutline(outline_base, inRect, co, outline, outRect, co);
+        
+        outRect.x = 0;
+        combineOutline(outline_base, inRect, co, outline, outRect, co);
+        
+        combineOutline(txtSurf, inRect, c, outline, inRect, co);
+        SDL_FreeSurface(txtSurf);
+        SDL_FreeSurface(outline_base);
+        txtSurf = outline;
+    }
+    
+    IntRect destRect(alignX, alignY,
+                    std::min(rect.w, (int)(txtSurf->w * squeeze)),
+                    std::min(rect.h, txtSurf->h));
     
     destRect.w = std::min(destRect.w, width() - destRect.x);
     destRect.h = std::min(destRect.h, height() - destRect.y);
     
-    IntRect sourceRect;
-    sourceRect.w = destRect.w / squeeze;
-    sourceRect.h = destRect.h;
+    IntRect sourceRect(0, 0, destRect.w / squeeze, destRect.h);
     
     Bitmap txtBitmap(txtSurf, nullptr, true);
     bool smooth = squeeze != 1.0f;
-    stretchBlt(destRect, txtBitmap, sourceRect, fontColor.alpha, smooth);
+    stretchBlt(destRect, txtBitmap, sourceRect, 255, smooth);
 }
 
 /* http://www.lemoda.net/c/utf8-to-ucs2/index.html */
@@ -2196,11 +2344,18 @@ IntRect Bitmap::textSize(const char *str)
 
     TTF_Font *font = p->font->getSdlFont();
     
-    std::string fixed = fixupString(str);
-    str = fixed.c_str();
+    // freetype sometimes treats the last character of the string as being
+    // a pixel wider than it should be. Adding a space at the end and then
+    // removing it's width should make character-by-character text
+    // more accurate.
+    std::string fixed = fixupString(str) + " ";
     
     int w, h;
-    TTF_SizeUTF8(font, str, &w, &h);
+    TTF_SizeUTF8(font, fixed.c_str(), &w, &h);
+    
+    int ws;
+    TTF_SizeUTF8(font, " ", &ws, 0);
+    w -= ws;
     
     /* If str is one character long, *endPtr == 0 */
     const char *endPtr;
